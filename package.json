@@ -12,6 +12,7 @@
     "url": "https://github.com/akin01/pfrsim/issues"
   },
   "license": "MIT",
+  "packageManager": "pnpm@12.1.0",
   "private": true,
   "keywords": [
     "peatland",
