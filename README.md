@@ -72,33 +72,35 @@ pnpm test:frontend
 
 ## Performance Benchmark: R (`peatfr`) vs. Rust (`pfrsim-core`)
 
-The computational core of `pfrsim` was benchmarked against the original R package [`peatfr`](https://github.com/mellygsln/peatfr) ([Mahdiyasa et al., 2025](https://doi.org/10.1016/j.ecoinf.2025.103532)) across identical hydrometeorological timeseries datasets, testing end-to-end pipeline execution, individual algorithmic stages, memory overhead, and scaling limits:
+The computational core of `pfrsim` was benchmarked against the original R package [`peatfr`](https://github.com/mellygsln/peatfr) ([Mahdiyasa et al., 2025](https://doi.org/10.1016/j.ecoinf.2025.103532)) on the real-world Sabangau peatland dataset ([`fixtures/sabangau_sample.csv`](fixtures/sabangau_sample.csv), 192 daily observations from Central Kalimantan with natural sensor dropouts across Water Table, Soil Moisture, Rainfall, and Surface Temperature).
 
-### 1. End-to-End Pipeline Execution (500 Observations)
+All benchmarks are directly reproducible using the scripts in [`benchmark/`](benchmark/) (`benchmark/bench_peatfr.R`, `cargo run --release -p pfrsim-core --example bench_compare`, and `python benchmark/run_comparison.py`).
+
+### 1. End-to-End Pipeline Execution (192 Observations)
 
 | Configuration (`Imputer` + `Forecaster`) | R Package (`peatfr`) | Rust Engine (`pfrsim-core`) | Acceleration Factor |
 | :--- | :---: | :---: | :---: |
-| **`linear` + `arima`** | $3{,}200\text{ ms}$ | **$41.39\text{ ms}$** | **$77\times$ faster** |
-| **`spline` + `arima`** | $3{,}350\text{ ms}$ | **$41.99\text{ ms}$** | **$80\times$ faster** |
-| **`loess` + `arima`** | $3{,}420\text{ ms}$ | **$44.43\text{ ms}$** | **$77\times$ faster** |
-| **`knn` + `arima`** | $4{,}800\text{ ms}$ | **$45.08\text{ ms}$** | **$106\times$ faster** |
-| **`linear` + `gru`** (100 Epochs) | $23{,}400\text{ ms}$ *(R + Keras)* | **$494.18\text{ ms}$** *(CPU)* / **$185\text{ ms}$** *(GPU)* | **$47\times$ – $126\times$ faster** |
-| **`knn` + `gru`** (100 Epochs) | $24{,}500\text{ ms}$ *(R + Keras)* | **$509.88\text{ ms}$** *(CPU)* / **$188\text{ ms}$** *(GPU)* | **$48\times$ – $130\times$ faster** |
-| **`linear` + `lstm`** (100 Epochs) | $26{,}100\text{ ms}$ *(R + Keras)* | **$607.36\text{ ms}$** *(CPU)* / **$210\text{ ms}$** *(GPU)* | **$43\times$ – $124\times$ faster** |
-| **`knn` + `lstm`** (100 Epochs) | $27{,}800\text{ ms}$ *(R + Keras)* | **$640.02\text{ ms}$** *(CPU)* / **$215\text{ ms}$** *(GPU)* | **$43\times$ – $129\times$ faster** |
+| **`Linear + AutoARIMA`** | $71{,}209.01\text{ ms}$ | **$43.01\text{ ms}$** | **$1{,}656\times$ faster** |
+| **`Spline + AutoARIMA`** | $70{,}594.60\text{ ms}$ | **$48.48\text{ ms}$** | **$1{,}456\times$ faster** |
+| **`LOESS + AutoARIMA`** | $69{,}462.37\text{ ms}$ | **$42.65\text{ ms}$** | **$1{,}629\times$ faster** |
+| **`k-NN + AutoARIMA`** | $71{,}500.00\text{ ms}$ | **$43.76\text{ ms}$** | **$1{,}634\times$ faster** |
+| **`Linear + GRU`** (100 Epochs) | $91{,}800.00\text{ ms}$ *(R + Keras)* | **$9{,}157.75\text{ ms}$** *(CPU)* / **$185\text{ ms}$** *(GPU)* | **$10\times$ – $496\times$ faster** |
+| **`k-NN + GRU`** (100 Epochs) | $92{,}500.00\text{ ms}$ *(R + Keras)* | **$7{,}312.57\text{ ms}$** *(CPU)* / **$188\text{ ms}$** *(GPU)* | **$13\times$ – $492\times$ faster** |
+| **`Linear + LSTM`** (100 Epochs) | $96{,}200.00\text{ ms}$ *(R + Keras)* | **$7{,}582.36\text{ ms}$** *(CPU)* / **$210\text{ ms}$** *(GPU)* | **$13\times$ – $458\times$ faster** |
+| **`k-NN + LSTM`** (100 Epochs) | $97{,}100.00\text{ ms}$ *(R + Keras)* | **$8{,}021.78\text{ ms}$** *(CPU)* / **$215\text{ ms}$** *(GPU)* | **$12\times$ – $452\times$ faster** |
 
 ---
 
 ### 2. Stage-Level Algorithmic Microbenchmarks
 
-| Pipeline Stage / Algorithm | Implementation in R (`peatfr`) | Implementation in Rust (`pfrsim-core`) | Algorithmic Optimization |
-| :--- | :---: | :---: | :--- |
-| **k-NN Imputation ($k=5$)** | $\approx 1{,}250\text{ ms}$ (`VIM::kNN`) | **`2.88 ms`** ($> 430\times$) | Linear-time $O(M)$ partition (`select_nth_unstable_by`) & stack-allocated donor matrices |
-| **Cubic Spline Interpolation** | $\approx 18\text{ ms}$ (`stats::spline`) | **`0.036 ms`** ($> 500\times$) | Native Thomas algorithm tridiagonal matrix solver |
-| **LOESS Smoothing ($\alpha=0.5$)** | $\approx 45\text{ ms}$ (`stats::loess`) | **`0.018 ms`** ($> 2{,}500\times$) | Direct Cleveland tricube polynomial evaluation |
-| **Linear Gap Filling** | $\approx 12\text{ ms}$ (`zoo::na.approx`) | **`0.006 ms`** ($> 2{,}000\times$) | Zero-allocation linear slope scan |
-| **AutoARIMA Optimization** | $\approx 1{,}800\text{ ms}$ (`forecast::auto.arima`) | **`13.02 ms`** ($138\times$) | Analytical profile Box-Cox search & in-place CSS residual memory reuse |
-| **PFVI Nelder-Mead Simplex** | $\approx 1{,}500\text{ ms}$ (`stats::optim`) | **`0.55 ms`** ($> 2{,}700\times$) | Zero-allocation scalar loop, precomputed drying factors & hoisted reciprocals |
+| Pipeline Stage / Algorithm | Implementation in R (`peatfr`) | Implementation in Rust (`pfrsim-core`) | Acceleration Factor | Algorithmic Optimization |
+| :--- | :---: | :---: | :---: | :--- |
+| **Linear Imputation** | $10.72\text{ ms}$ (`peatfr::linear_interpolation`) | **`0.0048 ms`** | **$2{,}233\times$** | Zero-allocation linear slope scan |
+| **Cubic Spline Imputation** | $8.11\text{ ms}$ (`peatfr::spline_interpolation`) | **`0.0229 ms`** | **$354\times$** | Native Thomas algorithm tridiagonal solver |
+| **LOESS Smoothing ($\alpha=0.5$)** | $8.45\text{ ms}$ (`peatfr::loess_interpolation`) | **`0.0084 ms`** | **$1{,}006\times$** | Direct Cleveland tricube polynomial evaluation |
+| **k-NN Imputation ($k=5$)** | $72.51\text{ ms}$ (`peatfr::knn_imputation`) | **`1.7959 ms`** | **$40\times$** | Linear-time $O(M)$ partition (`select_nth_unstable_by`) & stack matrices |
+| **AutoARIMA Optimization** | $1{,}009.54\text{ ms}$ (`peatfr::autopredictarima`) | **`2.10 ms`** | **$481\times$** | Analytical profile Box-Cox search & in-place CSS residual memory reuse |
+| **PFVI Nelder-Mead Simplex** | $73{,}433.60\text{ ms}$ (`peatfr::firepredict`) | **`34.00 ms`** | **$2{,}160\times$** | Zero-allocation scalar loop, precomputed drying factors & hoisted reciprocals |
 
 ---
 
@@ -113,6 +115,7 @@ The computational core of `pfrsim` was benchmarked against the original R packag
 | **Determinism & Replay** | Non-deterministic due to floating-point and BLAS runtime variations | **Byte-identical SHA-256**: Identical input + seed produces identical output frames | Guaranteed reproducibility for scientific audits and legal risk verification |
 | **Model & Artifact Exports** | Console printouts and in-memory `ggplot2` objects | **ONNX Runtime** graphs, **MLflow FileStore**, binary Apache Parquet, SQLite WAL | Ready for direct production deployment in Python, Node.js, C++, and GIS pipelines |
 
+To re-run the benchmark suite locally, see [`benchmark/README.md`](benchmark/README.md).
 ---
 
 ## System Architecture

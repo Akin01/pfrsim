@@ -1,0 +1,21 @@
+{
+  "dataset": "sabangau_sample.csv (192 rows)",
+  "stages": {
+    "linear_impute_ms": 0.0048,
+    "spline_impute_ms": 0.0229,
+    "loess_impute_ms": 0.0084,
+    "knn_impute_ms": 1.7959,
+    "arima_forecast_ms": 2.10,
+    "pfvi_calibration_ms": 34.00
+  },
+  "e2e": {
+    "linear_arima_ms": 43.01,
+    "spline_arima_ms": 48.48,
+    "loess_arima_ms": 42.65,
+    "knn_arima_ms": 43.76,
+    "linear_gru_ms": 9157.75,
+    "knn_gru_ms": 7312.57,
+    "linear_lstm_ms": 7582.36,
+    "knn_lstm_ms": 8021.78
+  }
+}
