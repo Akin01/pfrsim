@@ -13,6 +13,18 @@ A high-performance, reproducible desktop application with timeframe animation, 3
 [![Version](https://img.shields.io/badge/version-v0.1.0-blue.svg)](apps/desktop/package.json)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
+<br /><br />
+
+<img src="assets/pfrsim-land3d.png" alt="3D Peatland Land Heatmap Simulation" width="100%" />
+
+*Interactive Three.js 3D Peatland Moisture, Water Table Depth, and Fire Risk Terrain Simulator*
+
+<br /><br />
+
+<img src="assets/pfrsim-forecast.png" alt="2D Time Series Forecasting & PFVI Trajectory" width="100%" />
+
+*High-Density 2D uPlot Environmental Time Series and Calibrated Peat Fire Vulnerability Index (PFVI) Forecasting*
+
 </div>
 
 ---
