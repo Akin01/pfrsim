@@ -11,6 +11,7 @@ import {
 import { Layers, RotateCw } from "lucide-solid";
 import { CircularProgress } from "./CircularProgress";
 import { view } from "../lib/store";
+import { catalogs } from "../i18n/catalog";
 
 export interface TrainingStepperProps {
   stage: string | null;
@@ -25,6 +26,8 @@ export interface TrainingStepperProps {
   createdAt?: string;
   finishedAt?: string | null;
   durationSeconds?: number | null;
+  inspectStage?: string | null;
+  onInspectStageChange?: (stage: string | null) => void;
 }
 const STEPS = [
   {
@@ -77,6 +80,7 @@ function getStageIndex(stage: string | null): number {
 }
 
 export const TrainingStepper: Component<TrainingStepperProps> = (props) => {
+  const t = () => catalogs[view.lang];
   const getInitialStart = () => {
     if (props.createdAt) {
       const ms = new Date(props.createdAt).getTime();
@@ -421,7 +425,18 @@ export const TrainingStepper: Component<TrainingStepperProps> = (props) => {
     return "validating";
   };
 
-  const [selectedStage, setSelectedStage] = createSignal<string | null>(null);
+  const [selectedStage, setSelectedStage] = createSignal<string | null>(props.inspectStage ?? null);
+
+  createEffect(() => {
+    if (props.inspectStage !== undefined) {
+      setSelectedStage(props.inspectStage);
+    }
+  });
+
+  const handleSelectStage = (stage: string | null) => {
+    setSelectedStage(stage);
+    props.onInspectStageChange?.(stage);
+  };
 
   const activeStageId = () => {
     return selectedStage() ?? currentBackendStage();
@@ -486,7 +501,7 @@ export const TrainingStepper: Component<TrainingStepperProps> = (props) => {
           sub: `${def.id} · ${def.unit}`,
           status: "queued" as const,
           progress: 0,
-          badgeText: view.lang === "id" ? "Menunggu" : "Queued",
+          badgeText: t().stepperStatusQueued,
         };
       });
     }
@@ -563,24 +578,27 @@ export const TrainingStepper: Component<TrainingStepperProps> = (props) => {
         sub: stepSub,
         status: "queued" as const,
         progress: 0,
-        badgeText: view.lang === "id" ? "Menunggu" : "Queued",
+        badgeText: t().stepperStatusQueued,
       };
     });
   });
   const displayStageTitle = () => {
     const stageId = activeStageId();
     const isInspecting = selectedStage() !== null && selectedStage() !== currentBackendStage();
-
     if (props.status === "done" && !isInspecting) {
-      return view.lang === "id" ? "Pelatihan Selesai" : "Training Completed";
+      return t().stepperStatusCompleted;
     }
     if (props.status === "error" && !isInspecting) {
-      return view.lang === "id" ? "Pelatihan Gagal" : "Training Failed";
+      return t().stepperStatusFailed;
     }
 
     const step = STEPS.find((s) => s.id === stageId);
-    const stageName = step ? (view.lang === "id" ? step.nameId : step.label) : "Processing";
-    return `${view.lang === "id" ? "Tahap: " : "Stage: "}${stageName}`;
+    const stageName = step
+      ? view.lang === "id"
+        ? step.nameId
+        : step.label
+      : t().stepperStageProcessing;
+    return `${t().stepperStagePrefix}${stageName}`;
   };
   onCleanup(() => {
     if (timer !== null) {
@@ -679,7 +697,7 @@ export const TrainingStepper: Component<TrainingStepperProps> = (props) => {
               return (
                 <button
                   type="button"
-                  onClick={() => setSelectedStage(step.id)}
+                  onClick={() => handleSelectStage(step.id)}
                   class={`flex-1 min-w-0 flex items-center space-x-2 px-3 py-2 rounded-xl border text-left transition-all cursor-pointer ${
                     isSelected()
                       ? "bg-white dark:bg-slate-900 border-emerald-500 text-slate-900 dark:text-slate-100 shadow-xs ring-2 ring-emerald-500/20 font-bold"
@@ -752,17 +770,19 @@ export const TrainingStepper: Component<TrainingStepperProps> = (props) => {
             <Show when={selectedStage() !== null && selectedStage() !== currentBackendStage()}>
               <button
                 type="button"
-                onClick={() => setSelectedStage(null)}
+                onClick={() => handleSelectStage(null)}
                 class="px-2 py-0.5 rounded text-[10px] font-mono bg-cyan-50 dark:bg-cyan-950/80 text-cyan-700 dark:text-cyan-300 border border-cyan-200 dark:border-cyan-800 hover:bg-cyan-100 cursor-pointer flex items-center space-x-1"
                 title="Return to currently active backend stage"
               >
                 <RotateCw size={10} class="animate-spin" />
-                <span>{view.lang === "id" ? "Kembali ke Live" : "Back to Live"}</span>
+                <span>{t().stepperBackToLive}</span>
               </button>
             </Show>
             <span class="text-[10px] font-mono font-bold text-slate-500 dark:text-slate-400">
-              {currentPipelineSteps().filter((s) => s.status === "completed").length} /{" "}
-              {currentPipelineSteps().length} {view.lang === "id" ? "Selesai" : "Done"}
+              {t().stepperDoneCount(
+                currentPipelineSteps().filter((s) => s.status === "completed").length,
+                currentPipelineSteps().length,
+              )}
             </span>
           </div>
         </div>

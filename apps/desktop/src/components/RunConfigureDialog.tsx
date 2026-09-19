@@ -195,11 +195,7 @@ export const RunConfigureDialog: Component<RunConfigureDialogProps> = (props) =>
       const config = buildPipelineConfig();
       const res = await pipelineRun(datasetId, config, seedParam());
       if (res.ok) {
-        toast.success(
-          view.lang === "id"
-            ? `Eksperimen baru dimulai (Job: ${res.data.job_id.slice(0, 8)}...)`
-            : `New run initiated (Job: ${res.data.job_id.slice(0, 8)}...)`,
-        );
+        toast.success(t().runsReconfigureInitiated(res.data.job_id));
         mutationBus.notifyRunMutated(null);
         props.onRunLaunched?.(res.data.job_id);
         props.onClose();

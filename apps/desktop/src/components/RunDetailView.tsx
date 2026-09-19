@@ -77,9 +77,7 @@ export const RunDetailView: Component<RunDetailViewProps> = (props) => {
     if (!d) return;
 
     // 1. Prompt user to choose destination folder
-    const folderRes = await dialogPickFolder(
-      view.lang === "id" ? "Pilih Folder untuk Ekspor MLflow" : "Choose Folder for MLflow Export",
-    );
+    const folderRes = await dialogPickFolder(t().runsExportMlflowPickerTitle);
     if (!folderRes.ok || !folderRes.data) {
       // User cancelled dialog
       return;
@@ -113,9 +111,7 @@ export const RunDetailView: Component<RunDetailViewProps> = (props) => {
     const d = props.detail;
     if (!d) return;
 
-    const folderRes = await dialogPickFolder(
-      view.lang === "id" ? "Pilih Folder untuk Ekspor ONNX" : "Choose Folder for ONNX Export",
-    );
+    const folderRes = await dialogPickFolder(t().runsExportOnnxPickerTitle);
     if (!folderRes.ok || !folderRes.data) {
       return;
     }

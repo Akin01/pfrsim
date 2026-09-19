@@ -147,6 +147,12 @@ export const TrainJobsHistory: Component<TrainJobsHistoryProps> = (props) => {
   const setJobTab = (jobId: string, tab: "progress" | "config") => {
     setJobTabMap((prev) => ({ ...prev, [jobId]: tab }));
   };
+
+  const [inspectStageMap, setInspectStageMap] = createSignal<Record<string, string | null>>({});
+  const getInspectStage = (jobId: string) => inspectStageMap()[jobId] ?? null;
+  const setInspectStage = (jobId: string, stage: string | null) => {
+    setInspectStageMap((prev) => ({ ...prev, [jobId]: stage }));
+  };
   const [gliderReady, setGliderReady] = createSignal(false);
   const [gliderStyle, setGliderStyle] = createSignal({ left: 4, width: 72 });
 
@@ -425,6 +431,12 @@ export const TrainJobsHistory: Component<TrainJobsHistoryProps> = (props) => {
           <Index each={props.filteredJobs}>
             {(job) => {
               const j = job;
+              const parsed = createMemo(() => parseJobConfig(j()));
+              const currentTab = () => getJobTab(j().job_id);
+              const isExpanded = () =>
+                j().status === "running" ||
+                j().status === "queued" ||
+                props.expandedJobs.includes(j().job_id);
               const statusBadge = () => {
                 switch (j().status) {
                   case "done":
@@ -494,391 +506,353 @@ export const TrainJobsHistory: Component<TrainJobsHistoryProps> = (props) => {
                   </div>
 
                   {/* Interactive Switching Tag: Training Progress vs. Detail Config */}
-                  {(() => {
-                    const parsed = parseJobConfig(j());
-                    const currentTab = () => getJobTab(j().job_id);
-                    const isExpanded = () =>
-                      j().status === "running" ||
-                      j().status === "queued" ||
-                      props.expandedJobs.includes(j().job_id);
-                    return (
-                      <Show
-                        when={isExpanded()}
-                        fallback={
-                          <div
-                            onClick={() => props.onToggleExpandJob(j().job_id)}
-                            class="p-3 bg-slate-50/80 dark:bg-slate-800/40 hover:bg-slate-100/90 dark:hover:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700/60 rounded-xl flex items-center justify-between flex-wrap gap-2 cursor-pointer transition-colors shadow-2xs group"
-                          >
-                            <div class="flex items-center space-x-2 text-xs font-mono">
-                              <span class="font-bold text-slate-800 dark:text-slate-200">
-                                {parsed.imputerName} × {parsed.forecasterName}
-                              </span>
-                              <span class="text-slate-400">·</span>
-                              <span class="text-slate-500 dark:text-slate-400">
-                                {j().status === "done"
-                                  ? view.lang === "id"
-                                    ? "100% Selesai"
-                                    : "100% Completed"
-                                  : (j().stage ?? "Failed")}
-                              </span>
-                              <Show when={j().duration_seconds}>
-                                <span class="text-slate-400">·</span>
-                                <span class="text-slate-500 dark:text-slate-400">
-                                  {j().duration_seconds?.toFixed(1)}s
-                                </span>
-                              </Show>
-                            </div>
-
-                            <div class="flex items-center space-x-1.5 text-[10px] font-mono">
-                              <span class="px-2 py-0.5 rounded bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 font-bold">
-                                {parsed.forecasterName}
-                              </span>
-                              <Show when={parsed.forecasterName !== "ARIMA"}>
-                                <span
-                                  class={`px-2 py-0.5 rounded font-bold border flex items-center space-x-1 ${
-                                    parsed.device === "GPU"
-                                      ? "bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30"
-                                      : "bg-cyan-500/10 text-cyan-700 dark:text-cyan-400 border-cyan-500/20"
-                                  }`}
-                                >
-                                  <span>{parsed.device}</span>
-                                </span>
-                              </Show>
-                              <Show when={parsed.batchSize !== undefined}>
-                                <span class="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
-                                  {parsed.batchSize === 0 ? "Full" : `B=${parsed.batchSize}`}
-                                </span>
-                              </Show>
-                              <span class="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
-                                h={parsed.h}
-                              </span>
-                            </div>
-                          </div>
-                        }
+                  <Show
+                    when={isExpanded()}
+                    fallback={
+                      <div
+                        onClick={() => props.onToggleExpandJob(j().job_id)}
+                        class="p-3 bg-slate-50/80 dark:bg-slate-800/40 hover:bg-slate-100/90 dark:hover:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700/60 rounded-xl flex items-center justify-between flex-wrap gap-2 cursor-pointer transition-colors shadow-2xs group"
                       >
-                        <div class="space-y-3.5 animate-in fade-in duration-150">
-                          <div class="flex items-center justify-between flex-wrap gap-2 pt-1 pb-1 border-b border-slate-200/80 dark:border-slate-800">
-                            {/* Segmented Switching Tabs */}
-                            <div class="inline-flex items-center p-0.5 rounded-lg bg-slate-100 dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/80 text-xs font-mono select-none shadow-inner">
-                              <button
-                                type="button"
-                                onClick={() => setJobTab(j().job_id, "progress")}
-                                class={`px-3 py-1 rounded-md transition-all flex items-center space-x-1.5 cursor-pointer text-[11px] font-bold ${
-                                  currentTab() === "progress"
-                                    ? "bg-white dark:bg-slate-900 text-cyan-700 dark:text-cyan-300 shadow-2xs border border-slate-200/80 dark:border-slate-700"
-                                    : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
-                                }`}
-                              >
-                                <Activity
-                                  size={12}
-                                  class={
-                                    currentTab() === "progress" ? "text-cyan-500" : "text-slate-400"
-                                  }
-                                />
-                                <span>
-                                  {view.lang === "id" ? "Progres Pelatihan" : "Training Progress"}
-                                </span>
-                              </button>
-
-                              <button
-                                type="button"
-                                onClick={() => setJobTab(j().job_id, "config")}
-                                class={`px-3 py-1 rounded-md transition-all flex items-center space-x-1.5 cursor-pointer text-[11px] font-bold ${
-                                  currentTab() === "config"
-                                    ? "bg-white dark:bg-slate-900 text-purple-700 dark:text-purple-300 shadow-2xs border border-slate-200/80 dark:border-slate-700"
-                                    : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
-                                }`}
-                              >
-                                <SlidersVertical
-                                  size={12}
-                                  class={
-                                    currentTab() === "config" ? "text-purple-500" : "text-slate-400"
-                                  }
-                                />
-                                <span>
-                                  {view.lang === "id" ? "Detail Konfigurasi" : "Detail Config"}
-                                </span>
-                              </button>
-                            </div>
-
-                            {/* Quick Summary Chips on Right */}
-                            <div class="flex items-center space-x-1.5 text-[10px] font-mono">
-                              <span class="px-2 py-0.5 rounded bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 font-bold">
-                                {parsed.forecasterName}
-                              </span>
-                              <Show when={parsed.forecasterName !== "ARIMA"}>
-                                <span
-                                  class={`px-2 py-0.5 rounded font-bold border flex items-center space-x-1 ${
-                                    parsed.device === "GPU"
-                                      ? "bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30"
-                                      : "bg-cyan-500/10 text-cyan-700 dark:text-cyan-400 border-cyan-500/20"
-                                  }`}
-                                >
-                                  <Show
-                                    when={parsed.device === "GPU"}
-                                    fallback={<Cpu size={10} class="text-cyan-500" />}
-                                  >
-                                    <Sparkles size={10} class="text-amber-500" />
-                                  </Show>
-                                  <span>{parsed.device}</span>
-                                </span>
-                              </Show>
-                              <Show when={parsed.batchSize}>
-                                <span class="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
-                                  B={parsed.batchSize}
-                                </span>
-                              </Show>
-                              <span class="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
-                                h={parsed.h}
-                              </span>
-                            </div>
-                          </div>
-
-                          {/* TAB CONTENT 1: Training Progress Stepper */}
-                          <Show when={currentTab() === "progress"}>
-                            <TrainingStepper
-                              stage={j().stage}
-                              progress={j().progress}
-                              status={j().status}
-                              algorithm={j().config_hash}
-                              epoch={j().epoch}
-                              totalEpochs={j().total_epochs}
-                              currentVar={j().current_var}
-                              subStep={j().sub_step}
-                              varEpochs={j().var_epochs}
-                              createdAt={j().created_at}
-                              finishedAt={j().finished_at}
-                              durationSeconds={j().duration_seconds}
-                            />
-                          </Show>
-
-                          {/* TAB CONTENT 2: 4-Card Detail Configuration */}
-                          <Show when={currentTab() === "config"}>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs font-mono">
-                              {/* Card 1: Dataset & Evaluasi */}
-                              <div class="p-3.5 rounded-xl bg-blue-500/5 dark:bg-blue-500/5 border border-blue-500/20 space-y-2.5">
-                                <div class="flex items-center justify-between pb-1.5 border-b border-blue-500/20 text-blue-900 dark:text-blue-200 font-bold text-[11px]">
-                                  <div class="flex items-center space-x-1.5">
-                                    <Database size={13} class="text-blue-500" />
-                                    <span>
-                                      {view.lang === "id"
-                                        ? "Dataset & Evaluasi"
-                                        : "Dataset & Evaluation"}
-                                    </span>
-                                  </div>
-                                  <span class="text-[9px] px-1.5 py-0.2 rounded bg-blue-500/10 text-blue-700 dark:text-blue-300">
-                                    PARQUET / CSV
-                                  </span>
-                                </div>
-                                <div class="space-y-1.5 text-[11px]">
-                                  <div class="flex items-center justify-between">
-                                    <span class="text-slate-500 dark:text-slate-400">Dataset:</span>
-                                    <span
-                                      class="font-sans font-bold text-slate-900 dark:text-slate-100 truncate max-w-45"
-                                      title={parsed.datasetName}
-                                    >
-                                      {parsed.datasetName}
-                                    </span>
-                                  </div>
-                                  <div class="flex items-center justify-between">
-                                    <span class="text-slate-500 dark:text-slate-400">
-                                      Holdout Split:
-                                    </span>
-                                    <span class="font-bold text-emerald-600 dark:text-emerald-400">
-                                      {(parsed.splitRatio * 100).toFixed(0)}% (Test Split)
-                                    </span>
-                                  </div>
-                                  <div class="flex items-center justify-between">
-                                    <span class="text-slate-500 dark:text-slate-400">
-                                      Horizon (h):
-                                    </span>
-                                    <span class="font-bold text-cyan-600 dark:text-cyan-400">
-                                      {parsed.h} steps forward
-                                    </span>
-                                  </div>
-                                  <div class="flex items-center justify-between">
-                                    <span class="text-slate-500 dark:text-slate-400">
-                                      PRNG Seed:
-                                    </span>
-                                    <span class="font-bold text-slate-800 dark:text-slate-200">
-                                      {parsed.seed} (Deterministic)
-                                    </span>
-                                  </div>
-                                </div>
-                              </div>
-
-                              {/* Card 2: Konfigurasi Imputasi */}
-                              <div class="p-3.5 rounded-xl bg-emerald-500/5 dark:bg-emerald-500/5 border border-emerald-500/20 space-y-2.5">
-                                <div class="flex items-center justify-between pb-1.5 border-b border-emerald-500/20 text-emerald-900 dark:text-emerald-200 font-bold text-[11px]">
-                                  <div class="flex items-center space-x-1.5">
-                                    <Layers size={13} class="text-emerald-500" />
-                                    <span>
-                                      {view.lang === "id"
-                                        ? "Konfigurasi Imputasi"
-                                        : "Imputation Engine"}
-                                    </span>
-                                  </div>
-                                  <span class="text-[9px] px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-bold">
-                                    {parsed.imputerId}
-                                  </span>
-                                </div>
-                                <div class="space-y-1.5 text-[11px]">
-                                  <div class="flex items-center justify-between">
-                                    <span class="text-slate-500 dark:text-slate-400">Method:</span>
-                                    <span class="font-bold text-emerald-600 dark:text-emerald-400">
-                                      {parsed.imputerName}
-                                    </span>
-                                  </div>
-                                  <div class="flex items-center justify-between">
-                                    <span class="text-slate-500 dark:text-slate-400">
-                                      Neighbors (k):
-                                    </span>
-                                    <span class="font-bold text-slate-900 dark:text-slate-100">
-                                      k = {parsed.k} donors
-                                    </span>
-                                  </div>
-                                  <div class="flex items-center justify-between">
-                                    <span class="text-slate-500 dark:text-slate-400">
-                                      Smoothing Span:
-                                    </span>
-                                    <span class="font-bold text-slate-900 dark:text-slate-100">
-                                      span = {parsed.span}
-                                    </span>
-                                  </div>
-                                  <div class="flex items-center justify-between">
-                                    <span class="text-slate-500 dark:text-slate-400">
-                                      Boundary Guard:
-                                    </span>
-                                    <div class="flex items-center space-x-1 text-emerald-600 dark:text-emerald-400 font-bold text-[10px]">
-                                      <ShieldCheck size={12} />
-                                      <span>Edge-NA Active</span>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-
-                              {/* Card 3: Arsitektur & Hiperparameter */}
-                              <div class="p-3.5 rounded-xl bg-purple-500/5 dark:bg-purple-500/5 border border-purple-500/20 space-y-2.5">
-                                <div class="flex items-center justify-between pb-1.5 border-b border-purple-500/20 text-purple-900 dark:text-purple-200 font-bold text-[11px]">
-                                  <div class="flex items-center space-x-1.5">
-                                    <Cpu size={13} class="text-purple-500" />
-                                    <span>
-                                      {view.lang === "id"
-                                        ? "Arsitektur Model"
-                                        : "Model Architecture"}
-                                    </span>
-                                  </div>
-                                  <span
-                                    class={`text-[9px] px-1.5 py-0.2 rounded font-bold border ${
-                                      parsed.device === "GPU"
-                                        ? "bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30"
-                                        : "bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 border-slate-300"
-                                    }`}
-                                  >
-                                    {parsed.device}
-                                  </span>
-                                </div>
-                                <div class="space-y-1.5 text-[11px]">
-                                  <div class="flex items-center justify-between">
-                                    <span class="text-slate-500 dark:text-slate-400">Model:</span>
-                                    <span class="font-bold text-purple-600 dark:text-purple-400">
-                                      {parsed.forecasterName}
-                                    </span>
-                                  </div>
-                                  <Show when={parsed.units}>
-                                    <div class="flex items-center justify-between">
-                                      <span class="text-slate-500 dark:text-slate-400">
-                                        Hidden Units:
-                                      </span>
-                                      <span class="font-bold text-slate-900 dark:text-slate-100">
-                                        {parsed.units} units
-                                      </span>
-                                    </div>
-                                  </Show>
-                                  <Show when={parsed.batchSize !== undefined}>
-                                    <div class="flex items-center justify-between">
-                                      <span class="text-slate-500 dark:text-slate-400">
-                                        Batch Size:
-                                      </span>
-                                      <span class="font-bold text-cyan-600 dark:text-cyan-400">
-                                        {parsed.batchSize === 0
-                                          ? "Full Batch"
-                                          : `B = ${parsed.batchSize}`}{" "}
-                                        (Adam lr={parsed.learningRate ?? 0.02})
-                                      </span>
-                                    </div>
-                                  </Show>
-                                  <Show when={parsed.epochs}>
-                                    <div class="flex items-center justify-between">
-                                      <span class="text-slate-500 dark:text-slate-400">
-                                        Epochs:
-                                      </span>
-                                      <span class="font-bold text-emerald-600 dark:text-emerald-400">
-                                        {parsed.epochs} epochs
-                                      </span>
-                                    </div>
-                                  </Show>
-                                </div>
-                              </div>
-
-                              {/* Card 4: Parameter Fisik PFVI */}
-                              <div class="p-3.5 rounded-xl bg-amber-500/5 dark:bg-amber-500/5 border border-amber-500/20 space-y-2.5">
-                                <div class="flex items-center justify-between pb-1.5 border-b border-amber-500/20 text-amber-900 dark:text-amber-200 font-bold text-[11px]">
-                                  <div class="flex items-center space-x-1.5">
-                                    <Flame size={13} class="text-amber-500" />
-                                    <span>
-                                      {view.lang === "id"
-                                        ? "Parameter Fisik PFVI"
-                                        : "Physical PFVI Fit"}
-                                    </span>
-                                  </div>
-                                  <span class="text-[9px] px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-700 dark:text-amber-400 font-bold flex items-center space-x-1">
-                                    <Zap size={9} />
-                                    <span>NELDER-MEAD</span>
-                                  </span>
-                                </div>
-                                <div class="space-y-1.5 text-[11px]">
-                                  <div class="flex items-center justify-between">
-                                    <span class="text-slate-500 dark:text-slate-400">
-                                      Rainfall (R₀):
-                                    </span>
-                                    <span class="font-bold text-slate-900 dark:text-slate-100">
-                                      R₀ = {parsed.r0} mm
-                                    </span>
-                                  </div>
-                                  <div class="flex items-center justify-between">
-                                    <span class="text-slate-500 dark:text-slate-400">
-                                      Time Step (Δt):
-                                    </span>
-                                    <span class="font-bold text-slate-900 dark:text-slate-100">
-                                      Δt = {parsed.dt} day
-                                    </span>
-                                  </div>
-                                  <div class="flex items-center justify-between">
-                                    <span class="text-slate-500 dark:text-slate-400">
-                                      Peat Soil (FC/SAT):
-                                    </span>
-                                    <span class="font-bold text-slate-900 dark:text-slate-100">
-                                      FC = {parsed.fc}% · SAT = {parsed.sat}%
-                                    </span>
-                                  </div>
-                                  <div class="flex items-center justify-between">
-                                    <span class="text-slate-500 dark:text-slate-400">
-                                      Grid Search (m):
-                                    </span>
-                                    <span class="font-bold text-slate-900 dark:text-slate-100">
-                                      m = {parsed.maxGridM} dimension
-                                    </span>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
+                        <div class="flex items-center space-x-2 text-xs font-mono">
+                          <span class="font-bold text-slate-800 dark:text-slate-200">
+                            {parsed().imputerName} × {parsed().forecasterName}
+                          </span>
+                          <span class="text-slate-400">·</span>
+                          <span class="text-slate-500 dark:text-slate-400">
+                            {j().status === "done"
+                              ? t().trainJobCompleted
+                              : (j().stage ?? "Failed")}
+                          </span>
+                          <Show when={j().duration_seconds}>
+                            <span class="text-slate-400">·</span>
+                            <span class="text-slate-500 dark:text-slate-400">
+                              {j().duration_seconds?.toFixed(1)}s
+                            </span>
                           </Show>
                         </div>
-                      </Show>
-                    );
-                  })()}
 
+                        <div class="flex items-center space-x-1.5 text-[10px] font-mono">
+                          <span class="px-2 py-0.5 rounded bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 font-bold">
+                            {parsed().forecasterName}
+                          </span>
+                          <Show when={parsed().forecasterName !== "ARIMA"}>
+                            <span
+                              class={`px-2 py-0.5 rounded font-bold border flex items-center space-x-1 ${
+                                parsed().device === "GPU"
+                                  ? "bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30"
+                                  : "bg-cyan-500/10 text-cyan-700 dark:text-cyan-400 border-cyan-500/20"
+                              }`}
+                            >
+                              <span>{parsed().device}</span>
+                            </span>
+                          </Show>
+                          <Show when={parsed().batchSize !== undefined}>
+                            <span class="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                              {parsed().batchSize === 0 ? "Full" : `B=${parsed().batchSize}`}
+                            </span>
+                          </Show>
+                          <span class="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                            h={parsed().h}
+                          </span>
+                        </div>
+                      </div>
+                    }
+                  >
+                    <div class="space-y-3.5 animate-in fade-in duration-150">
+                      <div class="flex items-center justify-between flex-wrap gap-2 pt-1 pb-1 border-b border-slate-200/80 dark:border-slate-800">
+                        {/* Segmented Switching Tabs */}
+                        <div class="inline-flex items-center p-0.5 rounded-lg bg-slate-100 dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/80 text-xs font-mono select-none shadow-inner">
+                          <button
+                            type="button"
+                            onClick={() => setJobTab(j().job_id, "progress")}
+                            class={`px-3 py-1 rounded-md transition-all flex items-center space-x-1.5 cursor-pointer text-[11px] font-bold ${
+                              currentTab() === "progress"
+                                ? "bg-white dark:bg-slate-900 text-cyan-700 dark:text-cyan-300 shadow-2xs border border-slate-200/80 dark:border-slate-700"
+                                : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+                            }`}
+                          >
+                            <Activity
+                              size={12}
+                              class={
+                                currentTab() === "progress" ? "text-cyan-500" : "text-slate-400"
+                              }
+                            />
+                            <span>{t().trainTabProgress}</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => setJobTab(j().job_id, "config")}
+                            class={`px-3 py-1 rounded-md transition-all flex items-center space-x-1.5 cursor-pointer text-[11px] font-bold ${
+                              currentTab() === "config"
+                                ? "bg-white dark:bg-slate-900 text-purple-700 dark:text-purple-300 shadow-2xs border border-slate-200/80 dark:border-slate-700"
+                                : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+                            }`}
+                          >
+                            <SlidersVertical
+                              size={12}
+                              class={
+                                currentTab() === "config" ? "text-purple-500" : "text-slate-400"
+                              }
+                            />
+                            <span>{t().trainTabConfig}</span>
+                          </button>
+                        </div>
+
+                        {/* Quick Summary Chips on Right */}
+                        <div class="flex items-center space-x-1.5 text-[10px] font-mono">
+                          <span class="px-2 py-0.5 rounded bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 font-bold">
+                            {parsed().forecasterName}
+                          </span>
+                          <Show when={parsed().forecasterName !== "ARIMA"}>
+                            <span
+                              class={`px-2 py-0.5 rounded font-bold border flex items-center space-x-1 ${
+                                parsed().device === "GPU"
+                                  ? "bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30"
+                                  : "bg-cyan-500/10 text-cyan-700 dark:text-cyan-400 border-cyan-500/20"
+                              }`}
+                            >
+                              <Show
+                                when={parsed().device === "GPU"}
+                                fallback={<Cpu size={10} class="text-cyan-500" />}
+                              >
+                                <Sparkles size={10} class="text-amber-500" />
+                              </Show>
+                              <span>{parsed().device}</span>
+                            </span>
+                          </Show>
+                          <Show when={parsed().batchSize}>
+                            <span class="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                              B={parsed().batchSize}
+                            </span>
+                          </Show>
+                          <span class="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                            h={parsed().h}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* TAB CONTENT 1: Training Progress Stepper */}
+                      <Show when={currentTab() === "progress"}>
+                        <TrainingStepper
+                          stage={j().stage}
+                          progress={j().progress}
+                          status={j().status}
+                          algorithm={j().config_hash}
+                          epoch={j().epoch}
+                          totalEpochs={j().total_epochs}
+                          currentVar={j().current_var}
+                          subStep={j().sub_step}
+                          varEpochs={j().var_epochs}
+                          createdAt={j().created_at}
+                          finishedAt={j().finished_at}
+                          durationSeconds={j().duration_seconds}
+                          inspectStage={getInspectStage(j().job_id)}
+                          onInspectStageChange={(st) => setInspectStage(j().job_id, st)}
+                        />
+                      </Show>
+                      {/* TAB CONTENT 2: 4-Card Detail Configuration */}
+                      <Show when={currentTab() === "config"}>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs font-mono">
+                          {/* Card 1: Dataset & Evaluasi */}
+                          <div class="p-3.5 rounded-xl bg-blue-500/5 dark:bg-blue-500/5 border border-blue-500/20 space-y-2.5">
+                            <div class="flex items-center justify-between pb-1.5 border-b border-blue-500/20 text-blue-900 dark:text-blue-200 font-bold text-[11px]">
+                              <div class="flex items-center space-x-1.5">
+                                <Database size={13} class="text-blue-500" />
+                                <span>{t().trainCardDataset}</span>
+                              </div>
+                              <span class="text-[9px] px-1.5 py-0.2 rounded bg-blue-500/10 text-blue-700 dark:text-blue-300">
+                                PARQUET / CSV
+                              </span>
+                            </div>
+                            <div class="space-y-1.5 text-[11px]">
+                              <div class="flex items-center justify-between">
+                                <span class="text-slate-500 dark:text-slate-400">Dataset:</span>
+                                <span
+                                  class="font-sans font-bold text-slate-900 dark:text-slate-100 truncate max-w-45"
+                                  title={parsed().datasetName}
+                                >
+                                  {parsed().datasetName}
+                                </span>
+                              </div>
+                              <div class="flex items-center justify-between">
+                                <span class="text-slate-500 dark:text-slate-400">
+                                  Holdout Split:
+                                </span>
+                                <span class="font-bold text-emerald-600 dark:text-emerald-400">
+                                  {(parsed().splitRatio * 100).toFixed(0)}% (Test Split)
+                                </span>
+                              </div>
+                              <div class="flex items-center justify-between">
+                                <span class="text-slate-500 dark:text-slate-400">Horizon (h):</span>
+                                <span class="font-bold text-cyan-600 dark:text-cyan-400">
+                                  {parsed().h} steps forward
+                                </span>
+                              </div>
+                              <div class="flex items-center justify-between">
+                                <span class="text-slate-500 dark:text-slate-400">PRNG Seed:</span>
+                                <span class="font-bold text-slate-800 dark:text-slate-200">
+                                  {parsed().seed} (Deterministic)
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Card 2: Konfigurasi Imputasi */}
+                          <div class="p-3.5 rounded-xl bg-emerald-500/5 dark:bg-emerald-500/5 border border-emerald-500/20 space-y-2.5">
+                            <div class="flex items-center justify-between pb-1.5 border-b border-emerald-500/20 text-emerald-900 dark:text-emerald-200 font-bold text-[11px]">
+                              <div class="flex items-center space-x-1.5">
+                                <Layers size={13} class="text-emerald-500" />
+                                <span>{t().trainCardImputation}</span>
+                              </div>
+                              <span class="text-[9px] px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-bold">
+                                {parsed().imputerId}
+                              </span>
+                            </div>
+                            <div class="space-y-1.5 text-[11px]">
+                              <div class="flex items-center justify-between">
+                                <span class="text-slate-500 dark:text-slate-400">Method:</span>
+                                <span class="font-bold text-emerald-600 dark:text-emerald-400">
+                                  {parsed().imputerName}
+                                </span>
+                              </div>
+                              <div class="flex items-center justify-between">
+                                <span class="text-slate-500 dark:text-slate-400">
+                                  Neighbors (k):
+                                </span>
+                                <span class="font-bold text-slate-900 dark:text-slate-100">
+                                  k = {parsed().k} donors
+                                </span>
+                              </div>
+                              <div class="flex items-center justify-between">
+                                <span class="text-slate-500 dark:text-slate-400">
+                                  Smoothing Span:
+                                </span>
+                                <span class="font-bold text-slate-900 dark:text-slate-100">
+                                  span = {parsed().span}
+                                </span>
+                              </div>
+                              <div class="flex items-center justify-between">
+                                <span class="text-slate-500 dark:text-slate-400">
+                                  Boundary Guard:
+                                </span>
+                                <div class="flex items-center space-x-1 text-emerald-600 dark:text-emerald-400 font-bold text-[10px]">
+                                  <ShieldCheck size={12} />
+                                  <span>Edge-NA Active</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Card 3: Arsitektur & Hiperparameter */}
+                          <div class="p-3.5 rounded-xl bg-purple-500/5 dark:bg-purple-500/5 border border-purple-500/20 space-y-2.5">
+                            <div class="flex items-center justify-between pb-1.5 border-b border-purple-500/20 text-purple-900 dark:text-purple-200 font-bold text-[11px]">
+                              <div class="flex items-center space-x-1.5">
+                                <Cpu size={13} class="text-purple-500" />
+                                <span>{t().trainCardArchitecture}</span>
+                              </div>
+                              <span
+                                class={`text-[9px] px-1.5 py-0.2 rounded font-bold border ${
+                                  parsed().device === "GPU"
+                                    ? "bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30"
+                                    : "bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 border-slate-300"
+                                }`}
+                              >
+                                {parsed().device}
+                              </span>
+                            </div>
+                            <div class="space-y-1.5 text-[11px]">
+                              <div class="flex items-center justify-between">
+                                <span class="text-slate-500 dark:text-slate-400">Model:</span>
+                                <span class="font-bold text-purple-600 dark:text-purple-400">
+                                  {parsed().forecasterName}
+                                </span>
+                              </div>
+                              <Show when={parsed().units}>
+                                <div class="flex items-center justify-between">
+                                  <span class="text-slate-500 dark:text-slate-400">
+                                    Hidden Units:
+                                  </span>
+                                  <span class="font-bold text-slate-900 dark:text-slate-100">
+                                    {parsed().units} units
+                                  </span>
+                                </div>
+                              </Show>
+                              <Show when={parsed().batchSize !== undefined}>
+                                <div class="flex items-center justify-between">
+                                  <span class="text-slate-500 dark:text-slate-400">
+                                    Batch Size:
+                                  </span>
+                                  <span class="font-bold text-cyan-600 dark:text-cyan-400">
+                                    {parsed().batchSize === 0
+                                      ? "Full Batch"
+                                      : `B = ${parsed().batchSize}`}{" "}
+                                    (Adam lr={parsed().learningRate ?? 0.02})
+                                  </span>
+                                </div>
+                              </Show>
+                              <Show when={parsed().epochs}>
+                                <div class="flex items-center justify-between">
+                                  <span class="text-slate-500 dark:text-slate-400">Epochs:</span>
+                                  <span class="font-bold text-emerald-600 dark:text-emerald-400">
+                                    {parsed().epochs} epochs
+                                  </span>
+                                </div>
+                              </Show>
+                            </div>
+                          </div>
+
+                          {/* Card 4: Parameter Fisik PFVI */}
+                          <div class="p-3.5 rounded-xl bg-amber-500/5 dark:bg-amber-500/5 border border-amber-500/20 space-y-2.5">
+                            <div class="flex items-center justify-between pb-1.5 border-b border-amber-500/20 text-amber-900 dark:text-amber-200 font-bold text-[11px]">
+                              <div class="flex items-center space-x-1.5">
+                                <Flame size={13} class="text-amber-500" />
+                                <span>{t().trainCardPfvi}</span>
+                              </div>
+                              <span class="text-[9px] px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-700 dark:text-amber-400 font-bold flex items-center space-x-1">
+                                <Zap size={9} />
+                                <span>NELDER-MEAD</span>
+                              </span>
+                            </div>
+                            <div class="space-y-1.5 text-[11px]">
+                              <div class="flex items-center justify-between">
+                                <span class="text-slate-500 dark:text-slate-400">
+                                  Rainfall (R₀):
+                                </span>
+                                <span class="font-bold text-slate-900 dark:text-slate-100">
+                                  R₀ = {parsed().r0} mm
+                                </span>
+                              </div>
+                              <div class="flex items-center justify-between">
+                                <span class="text-slate-500 dark:text-slate-400">
+                                  Time Step (Δt):
+                                </span>
+                                <span class="font-bold text-slate-900 dark:text-slate-100">
+                                  Δt = {parsed().dt} day
+                                </span>
+                              </div>
+                              <div class="flex items-center justify-between">
+                                <span class="text-slate-500 dark:text-slate-400">
+                                  Peat Soil (FC/SAT):
+                                </span>
+                                <span class="font-bold text-slate-900 dark:text-slate-100">
+                                  FC = {parsed().fc}% · SAT = {parsed().sat}%
+                                </span>
+                              </div>
+                              <div class="flex items-center justify-between">
+                                <span class="text-slate-500 dark:text-slate-400">
+                                  Grid Search (m):
+                                </span>
+                                <span class="font-bold text-slate-900 dark:text-slate-100">
+                                  m = {parsed().maxGridM} dimension
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </Show>
+                    </div>
+                  </Show>
                   {/* Error Banner */}
                   <Show when={j().error}>
                     <div class="p-3 rounded-xl bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/30 text-rose-800 dark:text-rose-300 text-xs flex items-start space-x-2">

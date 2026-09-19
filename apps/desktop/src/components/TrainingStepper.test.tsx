@@ -1,5 +1,6 @@
 import { describe, it, expect, afterEach } from "vitest";
 import { render } from "solid-js/web";
+import { createSignal } from "solid-js";
 import { TrainingStepper } from "./TrainingStepper";
 
 describe("TrainingStepper Component", () => {
@@ -127,6 +128,57 @@ describe("TrainingStepper Component", () => {
     expect(container.textContent).toContain("DIM");
     expect(container.textContent).toContain("SCHEMA");
     expect(container.textContent).toMatch(/Stage:\s*Validating|Tahap:\s*Validasi/);
+    dispose();
+  });
+
+  it("keeps user-selected stage active during live running progress updates", async () => {
+    container = document.createElement("div");
+    document.body.appendChild(container);
+
+    const [stage, setStage] = createSignal("forecasting (WT epoch 50/100)");
+    const [progress, setProgress] = createSignal(0.45);
+    const [epoch, setEpoch] = createSignal(50);
+
+    const [selectedStage, setSelectedStage] = createSignal<string | null>(null);
+    const dispose = render(
+      () => (
+        <TrainingStepper
+          stage={stage()}
+          progress={progress()}
+          status="running"
+          currentVar="WT"
+          subStep="WT"
+          epoch={epoch()}
+          totalEpochs={100}
+          inspectStage={selectedStage()}
+          onInspectStageChange={setSelectedStage}
+        />
+      ),
+      container,
+    );
+
+    expect(container.textContent).toContain("WT");
+
+    // Click Validating stage tab button
+    const buttons = container.querySelectorAll("button");
+    const validatingBtn = Array.from(buttons).find(
+      (b) => b.textContent?.includes("Validat") || b.textContent?.includes("Validasi"),
+    );
+    expect(validatingBtn).toBeDefined();
+    validatingBtn?.click();
+
+    expect(container.textContent).toContain("DIM");
+    expect(container.textContent).toContain("SCHEMA");
+
+    // Simulate high-frequency backend progress events during training
+    setStage("forecasting (WT epoch 51/100)");
+    setProgress(0.46);
+    setEpoch(51);
+
+    // User's inspection tab MUST still be on Validating!
+    expect(container.textContent).toContain("DIM");
+    expect(container.textContent).toContain("SCHEMA");
+
     dispose();
   });
 });

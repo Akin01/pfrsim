@@ -468,9 +468,7 @@ export const Sidebar: Component = () => {
                     <span class="font-bold text-slate-100 text-xs font-mono">
                       {t().glossaryButton}
                     </span>
-                    <span class="text-[10px] text-slate-400 font-sans">
-                      {view.lang === "id" ? "Tekan 'G'" : "Press 'G'"}
-                    </span>
+                    <span class="text-[10px] text-slate-400 font-sans">{t().sidebarPressG}</span>
                   </div>
                 }
                 placement="right"
@@ -491,7 +489,7 @@ export const Sidebar: Component = () => {
                       {t().shortcutsButton}
                     </span>
                     <span class="text-[10px] text-slate-400 font-sans">
-                      {view.lang === "id" ? "Tekan '?'" : "Press '?'"}
+                      {t().sidebarPressQuestion}
                     </span>
                   </div>
                 }
@@ -521,15 +519,7 @@ export const Sidebar: Component = () => {
               <div class="w-5 h-px bg-slate-200 dark:bg-slate-800/80 my-0.5" />
 
               <Tooltip
-                content={
-                  view.theme === "dark"
-                    ? view.lang === "id"
-                      ? "Mode Terang"
-                      : "Light Mode"
-                    : view.lang === "id"
-                      ? "Mode Gelap"
-                      : "Dark Mode"
-                }
+                content={view.theme === "dark" ? t().sidebarThemeLight : t().sidebarThemeDark}
                 placement="right"
               >
                 <button
@@ -632,13 +622,7 @@ export const Sidebar: Component = () => {
                 <Sun size={12} class="text-amber-500 dark:text-amber-400" />
               </Show>
               <span class="truncate text-[11px]">
-                {view.theme === "dark"
-                  ? view.lang === "id"
-                    ? "Gelap"
-                    : "Dark"
-                  : view.lang === "id"
-                    ? "Terang"
-                    : "Light"}
+                {view.theme === "dark" ? t().sidebarThemeDarkLabel : t().sidebarThemeLightLabel}
               </span>
             </button>
 

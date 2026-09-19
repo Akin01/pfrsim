@@ -225,7 +225,32 @@ export interface I18nCatalog {
   trainMethodologyModalTitle: string;
   trainCloseModal: string;
   trainExecutionError: string;
-
+  trainTabProgress: string;
+  trainTabConfig: string;
+  trainCardDataset: string;
+  trainCardImputation: string;
+  trainCardArchitecture: string;
+  trainCardPfvi: string;
+  trainJobCompleted: string;
+  stepperStagePrefix: string;
+  stepperStageProcessing: string;
+  stepperStatusCompleted: string;
+  stepperStatusFailed: string;
+  stepperBackToLive: string;
+  stepperDoneCount: (done: number, total: number) => string;
+  stepperStatusQueued: string;
+  sidebarThemeLight: string;
+  sidebarThemeDark: string;
+  sidebarThemeLightLabel: string;
+  sidebarThemeDarkLabel: string;
+  sidebarPressG: string;
+  sidebarPressQuestion: string;
+  runsEmptyFeatureCompare: string;
+  runsEmptyFeatureTrajectory: string;
+  runsEmptyFeatureSim: string;
+  runsReconfigureInitiated: (jobId: string) => string;
+  runsExportMlflowPickerTitle: string;
+  runsExportOnnxPickerTitle: string;
   // Runs & Models (RunsPage)
   runsListTitle: string;
   runsAllDatasets: string;
@@ -834,7 +859,32 @@ export const catalogs: Record<Lang, I18nCatalog> = {
     trainMethodologyModalTitle: "Formulasi Matematika & Metodologi",
     trainCloseModal: "Tutup",
     trainExecutionError: "Kesalahan Eksekusi",
-
+    trainTabProgress: "Progres Pelatihan",
+    trainTabConfig: "Detail Konfigurasi",
+    trainCardDataset: "Dataset & Evaluasi",
+    trainCardImputation: "Konfigurasi Imputasi",
+    trainCardArchitecture: "Arsitektur Model",
+    trainCardPfvi: "Parameter Fisik PFVI",
+    trainJobCompleted: "100% Selesai",
+    stepperStagePrefix: "Tahap: ",
+    stepperStageProcessing: "Memproses",
+    stepperStatusCompleted: "Pelatihan Selesai",
+    stepperStatusFailed: "Pelatihan Gagal",
+    stepperBackToLive: "Kembali ke Live",
+    stepperDoneCount: (done, total) => `${done} / ${total} Selesai`,
+    stepperStatusQueued: "Menunggu",
+    sidebarThemeLight: "Mode Terang",
+    sidebarThemeDark: "Mode Gelap",
+    sidebarThemeLightLabel: "Terang",
+    sidebarThemeDarkLabel: "Gelap",
+    sidebarPressG: "Tekan 'G'",
+    sidebarPressQuestion: "Tekan '?'",
+    runsEmptyFeatureCompare: "Komparasi Multi-Model",
+    runsEmptyFeatureTrajectory: "Trajektori Risiko PFVI",
+    runsEmptyFeatureSim: "Simulasi Spasial 2D & 3D",
+    runsReconfigureInitiated: (jobId) => `Eksperimen baru dimulai (Job: ${jobId.slice(0, 8)}...)`,
+    runsExportMlflowPickerTitle: "Pilih Folder untuk Ekspor MLflow",
+    runsExportOnnxPickerTitle: "Pilih Folder untuk Ekspor ONNX",
     runsListTitle: "Daftar Model",
     runsAllDatasets: "Semua Dataset",
     runsSearchPlaceholder: "Cari run, ID, model...",
@@ -1471,7 +1521,32 @@ export const catalogs: Record<Lang, I18nCatalog> = {
     trainMethodologyModalTitle: "Mathematical Formulation & Pipeline",
     trainCloseModal: "Close",
     trainExecutionError: "Execution Error",
-
+    trainTabProgress: "Training Progress",
+    trainTabConfig: "Detail Config",
+    trainCardDataset: "Dataset & Evaluation",
+    trainCardImputation: "Imputation Engine",
+    trainCardArchitecture: "Model Architecture",
+    trainCardPfvi: "Physical PFVI Fit",
+    trainJobCompleted: "100% Completed",
+    stepperStagePrefix: "Stage: ",
+    stepperStageProcessing: "Processing",
+    stepperStatusCompleted: "Training Completed",
+    stepperStatusFailed: "Training Failed",
+    stepperBackToLive: "Back to Live",
+    stepperDoneCount: (done, total) => `${done} / ${total} Done`,
+    stepperStatusQueued: "Queued",
+    sidebarThemeLight: "Light Mode",
+    sidebarThemeDark: "Dark Mode",
+    sidebarThemeLightLabel: "Light",
+    sidebarThemeDarkLabel: "Dark",
+    sidebarPressG: "Press 'G'",
+    sidebarPressQuestion: "Press '?'",
+    runsEmptyFeatureCompare: "Multi-Model Benchmark",
+    runsEmptyFeatureTrajectory: "PFVI Risk Trajectory",
+    runsEmptyFeatureSim: "2D & 3D Simulation",
+    runsReconfigureInitiated: (jobId) => `New run initiated (Job: ${jobId.slice(0, 8)}...)`,
+    runsExportMlflowPickerTitle: "Choose Folder for MLflow Export",
+    runsExportOnnxPickerTitle: "Choose Folder for ONNX Export",
     runsListTitle: "Runs & Models",
     runsAllDatasets: "All Datasets",
     runsSearchPlaceholder: "Search runs, ID, model...",

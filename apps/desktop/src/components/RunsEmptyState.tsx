@@ -54,9 +54,9 @@ export const RunsEmptyState: Component<RunsEmptyStateProps> = (props) => {
       <div class="flex flex-wrap items-center justify-center gap-1.5 pt-1">
         <For
           each={[
-            view.lang === "id" ? "Komparasi Multi-Model" : "Multi-Model Benchmark",
-            view.lang === "id" ? "Trajektori Risiko PFVI" : "PFVI Risk Trajectory",
-            view.lang === "id" ? "Simulasi Spasial 2D & 3D" : "2D & 3D Simulation",
+            t().runsEmptyFeatureCompare,
+            t().runsEmptyFeatureTrajectory,
+            t().runsEmptyFeatureSim,
           ]}
         >
           {(item) => (

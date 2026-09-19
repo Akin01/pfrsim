@@ -30,7 +30,7 @@ export const RunConfigPanel: Component<RunConfigPanelProps> = (props) => {
   const copyToClipboard = (text: string, key: string) => {
     navigator.clipboard.writeText(text);
     setCopiedKey(key);
-    toast.success(view.lang === "id" ? "Disalin ke papan klip" : "Copied to clipboard");
+    toast.success(t().runsCopiedClipboard);
     setTimeout(() => setCopiedKey(null), 2000);
   };
 
