@@ -1,0 +1,7 @@
+packages:
+  - "apps/*"
+allowBuilds:
+  esbuild: true
+  "@tauri-apps/cli": true
+minimumReleaseAgeExclude:
+  - lucide-solid@1.46.0

@@ -1,0 +1,23 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/pfrsim-core",
+    "src-tauri",
+]
+
+[profile.dev]
+debug = 1
+
+[profile.dev.package."*"]
+debug = 0
+
+[profile.dev.package.pfrsim-core]
+opt-level = 2
+
+[profile.bench]
+opt-level = 2
+debug = 0
+
+[profile.bench.package."*"]
+opt-level = 2
+debug = 0

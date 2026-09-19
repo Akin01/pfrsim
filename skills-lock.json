@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "skills": {
+    "solidjs-expert": {
+      "source": "akin01/solid-docs",
+      "sourceType": "github",
+      "skillPath": "skills/solidjs-expert/SKILL.md",
+      "computedHash": "eafb741bd1ce10d616ca44dd9ff7383144d3df768e7cde6ceb9e08f38c235ee7"
+    },
+    "tauri-v2": {
+      "source": "nodnarbnitram/claude-code-extensions",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/tauri-v2/SKILL.md",
+      "computedHash": "7108944eec3bef17686df9ebae9c9bdbee7809744930c8734c979e3c4573eaab"
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "name": "pfrsim",
+  "version": "0.1.0",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "dev": "tauri dev",
+    "dev:frontend": "pnpm --filter pfrsim-desktop dev",
+    "build:frontend": "pnpm --filter pfrsim-desktop build",
+    "build:desktop": "cargo build -p pfrsim-desktop",
+    "test:core": "cargo test --workspace",
+    "test:frontend": "pnpm --filter pfrsim-desktop test",
+    "test:e2e": "pnpm --filter pfrsim-desktop test:e2e",
+    "lint": "oxlint apps/desktop",
+    "format": "oxfmt apps/desktop",
+    "format:check": "oxfmt --check apps/desktop",
+    "typecheck": "pnpm --filter pfrsim-desktop typecheck"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.11.4",
+    "oxfmt": "^0.67.0",
+    "oxlint": "^1.82.0"
+  }
+}
