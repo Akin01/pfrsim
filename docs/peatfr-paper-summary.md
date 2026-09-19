@@ -271,3 +271,7 @@ While maintaining 100% mathematical parity with the `peatfr` formulas, the compi
    - Replaced R's ~50,000 vector allocations during Nelder-Mead grid search with a zero-allocation scalar loop, accelerating execution by ~100×.
 5. **Standardized Export Ecosystem**:
    - Added native exports for **MLflow Tracking** (`mlruns/`) and **ONNX Runtime** (`model.onnx` with Python inference runners) for cross-platform operational deployment.
+6. **Dual-Backend Hardware Acceleration**:
+   - Integrated the **Burn** deep learning framework supporting multi-threaded CPU execution (`burn-ndarray`) and cross-platform GPU compute shaders (`burn-wgpu` on Vulkan, DirectX 12, and Metal), enabling high-throughput parallel training without CUDA drivers.
+7. **Interactive 3D & 2D Simulation Playback**:
+   - Replaced static R `ggplot2` charts with an interactive desktop interface featuring 3D Three.js peatland moisture terrain simulation ([`assets/pfrsim-land3d.png`](../assets/pfrsim-land3d.png)), high-density uPlot timeseries plots ([`assets/pfrsim-forecast.png`](../assets/pfrsim-forecast.png)), and multi-tab workspace management.

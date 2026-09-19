@@ -96,12 +96,19 @@ flowchart TD
 - **Physical Domain Clamping**: Output trajectories are constrained to physical feasibility ($Rf \ge 0$, $SM \in [0, 100\%]$, $WT \in [-5.0\text{ m}, +2.0\text{ m}]$, $Temp \in [5^\circ\text{C}, 65^\circ\text{C}]$).
 
 #### Deep Recurrent Networks: LSTM & GRU
-- **Framework**: Native compiled Rust tensor execution with automatic differentiation and multi-threaded CPU acceleration.
-- **Sequence Windowing**: Sliding lookback window $L \in [1, 60]$ timesteps across Min-Max normalized sensor channels ($[0, 1]$).
-- **Optimization**: Adam optimizer ($\beta_1 = 0.9, \beta_2 = 0.999, \epsilon = 10^{-8}$) with adaptive learning rate and gradient clipping.
-- **Memory Invariants**: Contiguous single-buffer sequence generation and tensor handle cloning, avoiding intermediate vector reallocations across training epochs.
-- **Hardware Acceleration**: Profiles hardware capabilities via WGPU adapter enumeration, enabling dedicated Discrete GPUs (RTX, Apple Silicon, Radeon) or multi-threaded CPU fallback.
-
+- **Framework**: Native compiled Rust tensor execution via the **Burn** deep learning framework.
+- **Dual-Backend Acceleration**:
+  - **CPU Backend**: Multi-threaded execution powered by `burn-ndarray` (`NdArray<f32>`).
+  - **GPU Compute Shaders**: Hardware-accelerated autodiff via `burn-wgpu` (`Autodiff<Wgpu>`), dispatching parallel WGSL compute shaders directly to Vulkan, DirectX 12, or Metal adapters without requiring proprietary CUDA runtimes.
+- **Configurable Hyperparameters**:
+  - **Mini-Batch Sizing ($B$)**: Flexible mini-batch SGD ($B \in [16, 2048]$) or full-batch gradient descent ($B = 0$). On small records, full-batch converges smoothly, whereas on high-sample regimes (>100k rows), mini-batching enables GPU compute shader saturation.
+  - **Adam Learning Rate ($\eta$)**: Configurable learning rate $\eta \in [0.001, 0.1]$ (default $0.02$) with adaptive first/second moment estimation ($\beta_1 = 0.9, \beta_2 = 0.999, \epsilon = 10^{-8}$) and gradient clipping.
+  - **Sequence Lookback ($L$)**: Sliding temporal window $L \in [1, 60]$ timesteps across Min-Max normalized sensor channels ($[0, 1]$).
+  - **Hidden Dimensionality ($d$)**: Configurable hidden state size ($d \in [4, 64]$ units).
+- **Deterministic Replay Guarantee**:
+  - Training seeds are explicitly fed into the Burn PRNG (`WgpuDevice` / `NdArrayDevice`), ensuring byte-identical weights and forecasts across repeated runs with identical configurations.
+- **Resilient Thread Supervision**:
+  - Background worker threads execute inside `std::panic::catch_unwind`. Any numerical anomalies or unexpected divergences fail gracefully, logging error state to `runs.sqlite` and streaming structured notifications to the frontend without crashing the desktop window.
 ---
 
 ### Stage 4: Calibration (Nelder-Mead PFVI Simplex Fitting)

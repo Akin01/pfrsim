@@ -6,8 +6,8 @@ This document provides a reference guide to the Rust ecosystem crates dedicated 
 
 ## 1. Overview Matrix
 
-| Domain | Rust Crate | Python / R Equivalent | Primary Use Case |
-|---|---|---|---|
+| **DataFrame & Parquet** | [`polars`](https://crates.io/crates/polars) | `pandas` / `polars` | Fast column-oriented Arrow DataFrame operations and binary Parquet I/O |
+| **Excel Ingestion** | [`calamine`](https://crates.io/crates/calamine) | `openpyxl` / R `readxl` | High-throughput parsing of `.xlsx`, `.xls`, and `.ods` workbooks |
 | **Distributions & Tests** | [`statrs`](https://crates.io/crates/statrs) | `scipy.stats` / R `stats` | Probability distributions (PDF, CDF, quantiles), hypothesis tests, and special functions ($\Gamma$, $\beta$, $\text{erf}$) |
 | **Descriptive Stats** | [`statistical`](https://crates.io/crates/statistical) | Python `statistics` | Basic statistical summaries (mean, median, mode, variance, covariance) |
 | **Streaming Stats** | [`average`](https://crates.io/crates/average) | — | Online, single-pass statistics with $O(1)$ memory consumption |
@@ -17,10 +17,9 @@ This document provides a reference guide to the Rust ecosystem crates dedicated 
 | **Nonlinear Constraints** | [`cobyla`](https://crates.io/crates/cobyla) | `scipy.optimize.fmin_cobyla` | Derivative-free optimization under nonlinear inequality constraints |
 | **Time Series Modeling** | [`anofox-forecast`](https://crates.io/crates/anofox-forecast) | R `forecast` / `pmdarima` | Automated time series forecasting and model order selection |
 | **ARIMA Models** | [`arima`](https://crates.io/crates/arima) | `statsmodels.tsa.arima` | Classical ARIMA process simulation, estimation, and prediction |
-| **Deep Learning Engine** | [`burn`](https://crates.io/crates/burn) | PyTorch / TensorFlow | Recurrent neural networks (LSTM, GRU), automatic differentiation, dynamic computation graphs |
+| **Deep Learning Engine** | [`burn`](https://crates.io/crates/burn) | PyTorch / TensorFlow | Recurrent neural networks (LSTM, GRU), autodiff, CPU (`NdArray`) and GPU (`Wgpu`) compute shaders |
 | **$N$-Dimensional Arrays** | [`ndarray`](https://crates.io/crates/ndarray) | `numpy` | Multidimensional array views, strided slicing, matrix linear algebra |
 | **Linear Algebra & Geometry** | [`nalgebra`](https://crates.io/crates/nalgebra) | `scipy.linalg` | Matrix factorizations (LU, QR, Cholesky, SVD) and vector transformations |
-
 ---
 
 ## 2. Detailed Crate Profiles
@@ -86,15 +85,15 @@ This document provides a reference guide to the Rust ecosystem crates dedicated 
 ---
 
 ### 2.4 `burn` — Deep Learning Engine for Time Series
-- **Ecosystem Role**: Flexible, pure-Rust deep learning engine with dynamic computation graphs, automatic differentiation, and multi-backend support.
+- **Ecosystem Role**: Flexible, pure-Rust deep learning engine with dynamic computation graphs, automatic differentiation, and multi-backend execution.
 - **Key Features**:
-  - **Backends**: `burn-ndarray` (CPU execution via `ndarray`), `burn-wgpu` (cross-platform GPU), `burn-cuda`, and `burn-candle`.
+  - **Backends**: `burn-ndarray` (CPU execution via `ndarray`) and `burn-wgpu` (cross-platform GPU compute shaders via WebGPU/WGSL on Vulkan, Metal, and DirectX 12).
   - **Recurrent Architectures**: Native `burn::nn::Lstm` and `burn::nn::Gru` modules.
-  - **Optimizers**: Integrated Adam, AdamW, and SGD implementations.
-  - **Deterministic Training**: Explicit RNG seeding for exact reproducibility across runs.
+  - **Optimizers**: Integrated Adam and AdamW with configurable learning rates ($\eta \in [0.001, 0.1]$) and adaptive moment estimation.
+  - **Batching Flexibility**: Full-batch gradient descent for short hydrological records or mini-batch SGD ($B \in [16, 2048]$) for high-scale GPU compute shader saturation.
+  - **Deterministic Training**: Explicit RNG seeding (`WgpuDevice` / `NdArrayDevice`) for exact byte-reproducibility across runs.
 - **Application in `pfrsim`**:
   - Powers `crates/pfrsim-core/src/forecaster/lstm.rs` and `gru.rs` for multi-step time series forecasting without Python or CUDA runtime dependencies.
-
 
 ---
 
@@ -122,6 +121,17 @@ This document provides a reference guide to the Rust ecosystem crates dedicated 
     2. **Exact Bug-for-Bug Parity**: Matches the sibling R package `peatfr`'s specific parameter transforms and boundary behaviors without upstream divergence.
     3. **Deterministic Seed Stability**: Guarantees identical output hashes (`frames_sha256`) for immutable playback replay.
 ---
+
+---
+
+### 2.6 `polars` & `calamine` — High-Throughput Streaming Tabular Ingestion
+- **`polars` (v0.55)**:
+  - Column-oriented memory model based on Apache Arrow.
+  - High-speed streaming CSV, TSV, and binary Apache Parquet parsing.
+  - Powers `pfrsim-core::ingest` and `pfrsim-core::artifact` for generating cryptographic `frames.parquet` simulation playback bundles.
+- **`calamine` (v0.36)**:
+  - Pure-Rust spreadsheet workbook parser with zero Microsoft Office or COM automation dependencies.
+  - Reads `.xlsx`, `.xls`, and `.ods` formats with automated sheet scanning and typed row iteration.
 
 ## 3. Recommended Stack Selection Guide
 
@@ -151,9 +161,9 @@ The `pfrsim` desktop simulator relies on these principles for its pure-Rust pipe
 2. **Parametric Time Series (`crates/pfrsim-core/src/forecaster/arima.rs`)**:
    - Analytical Box-Cox profile likelihood search, $(p, d, q)$ order search via Akaike Information Criterion (AIC), and Ljung-Box residual diagnostics with $\chi^2$ survival functions.
 3. **Deep Recurrent Forecasting (`crates/pfrsim-core/src/forecaster/{lstm, gru}.rs`)**:
-   - `burn::nn::Lstm` and `burn::nn::Gru` running on `burn::backend::Autodiff<burn::backend::NdArray<f32>>` with Adam optimization.
+   - `burn::nn::Lstm` and `burn::nn::Gru` running on either multi-threaded CPU (`Autodiff<NdArray<f32>>`) or hardware-accelerated GPU compute shaders (`Autodiff<Wgpu>`) with Adam optimization and mini-batching.
 4. **Fire Vulnerability Optimization (`crates/pfrsim-core/src/pfvi.rs`)**:
-   - Multi-dimensional Nelder-Mead simplex calibration bounded by grid polish to optimize the 4-parameter soil fluctuation function $(aH, bH, n, \alpha)$.
+   - Custom zero-allocation, bounded Nelder-Mead 4D downhill simplex calibration ($aH, bH, n, \alpha$) with multi-resolution grid polish, eliminating ~48,000 vector allocations and preventing infinite search freezes.
 ```mermaid
 flowchart LR
     A["Raw Ingestion<br/>(Polars + Calamine)"] --> B["Stage 1: Imputation<br/>(kNN / LOESS / Spline)"]

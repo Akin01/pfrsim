@@ -10,27 +10,35 @@ This document provides a comprehensive technical reference for the architecture 
 
 ```mermaid
 graph TD
-    subgraph Client["Desktop Client (WebView2 / SolidJS)"]
-        UI["SolidJS UI + Tailwind CSS v4"]
-        Controls["Anofox Controls<br/>(STL, Method, Period)"]
-        Plots["Synchronized 4-Tier Plot<br/>(uPlot syncKey)"]
+    subgraph Client["Desktop Client (WebView2 / SolidJS 1.9 + Tailwind CSS v4)"]
+        UI["SolidJS Reactive UI"]
+        Tabs["WorkspaceTabBar<br/>(Multi-Tab Simulation Instances)"]
+        Land3D["Land3DView<br/>(Three.js 3D Peatland Moisture Terrain)"]
+        Plots["Synchronized 4-Tier Plot<br/>(uPlot syncKey + LTTB)"]
+        Mapper["ColumnMapperCanvas<br/>(Interactive Schema Connector)"]
         Table["VirtualPreviewTable<br/>(Windowed + Infinite Paging)"]
         Math["KaTeX Math Engine<br/>(MathTex)"]
-        Spark["TradingView Sparkline<br/>(TrendlineSparkline)"]
-        UI --- Controls
+        i18n["Bilingual Store<br/>(ID / EN · 525 Synchronized Keys)"]
+        UI --- Tabs
+        UI --- Land3D
         UI --- Plots
+        UI --- Mapper
         UI --- Table
         UI --- Math
-        UI --- Spark
+        UI --- i18n
     end
 
-    IPC{"Tauri v2 IPC Bridge<br/>(JSON / Binary Commands)"}
+    IPC{"Tauri v2 IPC Bridge<br/>(Typed Invoke · 26 Commands)"}
     Client <==>|"Invoke / Event"| IPC
 
-    subgraph TauriApp["Tauri Application Layer (Rust)"]
+    subgraph TauriApp["Tauri Application Layer (src-tauri)"]
         Handler["Command Dispatcher<br/>(commands.rs / main.rs)"]
         State["Thread-Safe AppState<br/>(parking_lot::Mutex)"]
+        Supervisor["Thread Supervisor<br/>(std::panic::catch_unwind)"]
+        Telemetry["Hardware GPU Telemetry<br/>(WGPU Adapter Profiling)"]
         Handler --- State
+        Handler --- Supervisor
+        Handler --- Telemetry
     end
     IPC <==> TauriApp
 
@@ -38,13 +46,13 @@ graph TD
         Ingest["Ingestion & Parsing<br/>(Polars + Calamine)"]
         TimeSeries["Time Series Engine<br/>• Rolling STL O(N)<br/>• ACF & PACF Durbin-Levinson<br/>• Wang et al. (2006) F_T, F_S"]
         Scalability["Scalability Algorithms<br/>• LTTB Downsampling<br/>• Windowed Chunk Paging"]
-        ML["Neural & Optimization<br/>• Deep Recurrent (LSTM/GRU)<br/>• Nelder-Mead PFVI"]
+        ML["Neural & Optimization<br/>• Burn DL: LSTM & GRU (CPU & WGPU)<br/>• Nelder-Mead 4D PFVI Calibration"]
     end
     TauriApp --> Core
 
     subgraph Storage["Persistent RunStore (SQLite WAL)"]
         DB[("runs.sqlite (WAL Mode)<br/>• datasets (Metadata & Stats)<br/>• jobs & runs (ML Lifecycle)<br/>• params & metrics (MLflow)<br/>• stages & artifacts")]
-        Files["Local Artifact Cache<br/>• Parquet files<br/>• Checkpoints & Frames"]
+        Files["Local Artifact Cache<br/>• Parquet files<br/>• SHA-256 Manifests & Frames"]
     end
     TauriApp --> Storage
     Core <--> Storage
@@ -309,9 +317,26 @@ Rather than streaming entire million-row columns into the browser runtime, the d
 
 ## 5. Frontend UI Architecture
 
-The desktop frontend is built on **SolidJS**, utilizing fine-grained reactive primitives (Signals and Memos) without a virtual DOM.
+The desktop frontend is built on **SolidJS 1.9** and **Tailwind CSS v4**, utilizing fine-grained reactive signals and memos without virtual DOM diffing overhead.
 
-### 5.1 Sub-Navigation Hierarchy (`DataPage.tsx`)
+### 5.1 Multi-Tab Workspace Navigation (`WorkspaceTabBar.tsx`)
+- **Concurrent Simulation Instances**: Dedicated multi-tab workspace manager allowing users to retain separate open instances of `PlayerPage` across multiple runs, side-by-side with exploratory tabs (`DataPage`, `TrainPage`, `RunsPage`).
+- **Fluid Interaction**: Supports 60fps drag-and-drop tab reordering, active tab indicator, tab overflow dropdown with search filtering, and context menu actions (Close, Close Others, Duplicate Tab).
+- **Keyboard Navigation**: Global keyboard shortcuts (`Ctrl+W` / `Cmd+W` to close active tab, `Ctrl+Tab` to cycle tabs).
+
+### 5.2 3D Peatland Moisture Simulation Canvas (`Land3DView.tsx`)
+- **Three.js WebGL Renderer**: Procedural 3D peatland landscape visualizing hydrological state transitions over time.
+- **Dynamic Elevation & Texture**:
+  - Water table depth ($WT$) dynamically elevates or draws down the central drainage canal geometry.
+  - Soil moisture fraction ($SM$) smoothly interpolates surface soil textures between saturated dark humus and arid pale peat.
+- **Thermal Risk Particles**: High fire risk conditions ($\text{PFVI} > 150$) trigger animated ember particle systems and thermal surface heat glows.
+- **Synchronized Scrubbing**: Coupled with the 2D timeseries timeline scrubber for frame-accurate spatial exploration.
+
+### 5.3 Single-Source-of-Truth Bilingual i18n (`catalog.ts`)
+- **100% Key Parity**: 525 synchronized translation keys maintained between Indonesian (`id`) and English (`en`).
+- **Zero-Reload Reactivity**: Language selection switches instantly across all pages, modal dialogues, charts, tooltips, and methodology popups without webview reload or IPC roundtrips.
+
+### 5.4 Sub-Navigation Hierarchy (`DataPage.tsx`)
 1. **`Statistik Deskriptif` (Descriptive)**: Far-left priority tab displaying Anofox metric chips, range spans, and standard deviation bars.
 2. **`Garis Waktu (Series)`**: Interactive time-series canvas plots with LTTB downsampling.
 3. **`Dekomposisi STL`**: 4-tier vertically stacked plot (`Observed`, `Trend`, `Seasonal`, `Residual`) sharing `syncKey="stl-anofox-sync"` for synchronized cursor tracking.
@@ -319,7 +344,8 @@ The desktop frontend is built on **SolidJS**, utilizing fine-grained reactive pr
 5. **`Matriks Nilai Hilang`**: Cell-level missingness and gap distribution overview.
 6. **`Tabel Baris (Preview)`**: Virtualized table supporting `All Rows`, `Head (First 25)`, and `Tail (Last 25)`.
 
-### 5.2 Visual Extensions
+### 5.5 Visual Extensions & Column Mapper
+- **Interactive Column Connector (`ColumnMapperCanvas.tsx`)**: Drag-and-drop SVG bezier wire connector mapping arbitrary table headers to the 4 canonical simulation channels ($WT, SM, Rf, Temp$).
 - **TradingView-Style Sparklines (`TrendlineSparkline.tsx`)**: Renders inline SVG trendlines in the metric strip, featuring directional gradient fills (emerald for positive slope, rose for negative) and glowing pulse endpoints.
 - **KaTeX Typography (`MathTex.tsx`)**: Renders mathematical formulas and notation client-side with zero external network dependencies.
 
@@ -342,11 +368,12 @@ The desktop frontend is built on **SolidJS**, utilizing fine-grained reactive pr
 | `dataset_get_series_downsampled` | `datasetId`, `series`, `maxPoints?` | `DownsampledSeries` | Retrieves time-series decimated via LTTB downsampling for high-density rendering. |
 | `dataset_update_name` | `datasetId`, `name` | `void` | Updates the human-readable dataset title in the SQLite store. |
 | `dataset_delete` | `datasetId` | `void` | Deletes dataset and cascades deletion of linked training runs and artifacts. |
+| `dialog_pick_file` | `title?` | `Option<String>` | Opens a native OS file dialog to select dataset files (`.csv`, `.tsv`, `.parquet`, `.xlsx`) with cancel safety. |
 | **Hardware & Capabilities** | | | |
 | `capability_query` | *none* | `CapabilityQueryOutput` | Returns available imputers, forecasters, and GPU acceleration metadata. |
 | `gpu_spec_query` | *none* | `GpuInfo` | Probes hardware GPU via WGPU adapter enumeration with VRAM and driver profiling. |
 | **Pipeline Execution & Supervision** | | | |
-| `pipeline_run` | `datasetId`, `config`, `seed?` | `PipelineRunOutput` | Spawns the 5-stage background training pipeline on a dedicated Tokio worker thread. |
+| `pipeline_run` | `datasetId`, `config`, `seed?` | `PipelineRunOutput` | Spawns the 5-stage background training pipeline on a dedicated Tokio worker thread guarded by `catch_unwind`. |
 | `pipeline_jobs_list` | `datasetId?` | `JobRecord[]` | Retrieves all active and historical pipeline training jobs. |
 | `pipeline_job_status` | `jobId` | `JobRecord` | Queries live progress, current stage, and sub-step status for a specific job. |
 | `pipeline_cancel` | `jobId` | `CancelOutput` | Cancels an active in-flight training pipeline job. |
@@ -369,7 +396,28 @@ The desktop frontend is built on **SolidJS**, utilizing fine-grained reactive pr
 
 ---
 
-## 7. Related Technical Documentation
+## 7. Production Packaging, CI/CD & Licensing
+
+### 7.1 Cross-Platform Installer Packaging
+The application bundles natively across major desktop environments via Tauri v2 CLI (`tauri.conf.json` configured with `"targets": "all"`):
+- **Windows**: WiX Windows Installer (`.msi`, ~24 MB) and NSIS Setup (`.exe`, ~16 MB).
+- **macOS**: Apple Disk Image (`.dmg`) and `.app` bundle.
+- **Linux**: Debian package (`.deb`) and universal standalone binary (`.AppImage`).
+
+### 7.2 GitHub Actions Workflows
+- **CI Workflow (`.github/workflows/ci.yml`)**: Automatically triggered on pushes and pull requests to `master` and `main`. Executes code formatting verification (`oxfmt`), linting (`oxlint`), TypeScript strict typechecking (`tsc`), frontend test suites (Vitest), Rust workspace compilation (`cargo check`), and integration tests (`cargo test`).
+- **Release Workflow (`.github/workflows/release.yml`)**: Automated cross-platform matrix build triggered on version tags (`v*`) and manual workflow dispatch, publishing draft releases with computed SHA-256 digests.
+
+### 7.3 Open Source Licensing
+The entire repository and all workspace packages are distributed under the permissive **MIT License**:
+- Root Workspace: [`LICENSE`](../LICENSE)
+- Desktop Application (`apps/desktop`): [`apps/desktop/LICENSE`](../apps/desktop/LICENSE)
+- Computational Engine (`crates/pfrsim-core`): [`crates/pfrsim-core/LICENSE`](../crates/pfrsim-core/LICENSE)
+- Native Shell (`src-tauri`): [`src-tauri/LICENSE`](../src-tauri/LICENSE)
+
+---
+
+## 8. Related Technical Documentation
 
 - **[Training Pipeline & Mathematical Process Reference](./training-pipeline.md)**: Exhaustive documentation of the 5-stage pipeline, algorithms (k-NN, LOESS, AutoARIMA, LSTM/GRU, Nelder-Mead PFVI), IPC streaming protocol, and real-time UI progress visualization.
 - **[Statistical Computation Crates](./statistical-computation-crates.md)**: Mathematical reference for algorithms, formulas, and Rust crate mappings.
