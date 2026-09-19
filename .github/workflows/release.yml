@@ -85,6 +85,12 @@ jobs:
         uses: swatinem/rust-cache@v2
         with:
           workspaces: "./src-tauri -> target"
+      - name: Extract Release Notes from CHANGELOG
+        id: changelog
+        shell: bash
+        run: python scripts/extract_changelog.py "${{ github.ref_name || inputs.tag }}"
+        env:
+          TAG: ${{ github.ref_name || inputs.tag }}
 
       - name: Build and Package Tauri App
         uses: tauri-apps/tauri-action@v0
@@ -94,12 +100,25 @@ jobs:
           tagName: ${{ github.ref_name || inputs.tag }}
           releaseName: "pfrsim ${{ github.ref_name || inputs.tag }}"
           releaseBody: |
-            See [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/${{ github.ref_name || inputs.tag }}/CHANGELOG.md) for full release details.
+            ${{ steps.changelog.outputs.notes }}
 
-            ### Available Packages
-            - **Windows**: `.msi` (Windows Installer) and `_x64-setup.exe` (NSIS Installer)
+            ---
+            ### Available Packages & Installers
+            - **Windows**: `.msi` (WiX Windows Installer) & `_x64-setup.exe` (NSIS Setup)
             - **macOS**: `.dmg` (Apple Disk Image)
-            - **Linux**: `.deb` (Debian/Ubuntu package) and `.AppImage` (Universal Linux standalone)
-          releaseDraft: true
+            - **Linux**: `.deb` (Debian/Ubuntu package) & `.AppImage` (Universal Standalone)
+          releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
+
+      - name: Compute SHA-256 Checksums and Collect Installers
+        shell: bash
+        run: bash scripts/collect_release_artifacts.sh "${{ matrix.platform }}"
+      - name: Ensure Installers and Checksums Attached to GitHub Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/') || inputs.tag != ''
+        with:
+          tag_name: ${{ github.ref_name || inputs.tag }}
+          files: release_artifacts/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
