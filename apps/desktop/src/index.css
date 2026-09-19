@@ -1,0 +1,449 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-brand-50: #f0fdf4;
+  --color-brand-100: #dcfce7;
+  --color-brand-500: #22c55e;
+  --color-brand-600: #16a34a;
+  --color-brand-700: #15803d;
+  --color-brand-900: #14532d;
+
+  --color-risk-low: #22c55e;
+  --color-risk-moderate: #eab308;
+  --color-risk-high: #f97316;
+  --color-risk-extreme: #ef4444;
+
+  --color-slate-850: #172033;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html.light {
+  color-scheme: light;
+}
+
+/* =========================================================================
+   Light Mode Design System (Desktop Agentic Craft)
+   ========================================================================= */
+
+html.light body {
+  background-color: #ffffff;
+  color: #0f172a;
+}
+
+/* Base Window Backgrounds */
+html.light .bg-slate-950,
+html.light [class*="bg-slate-950/"],
+html.light .bg-slate-50,
+html.light [class*="bg-slate-50/"] {
+  background-color: #ffffff !important;
+}
+
+/* Inset Wells & Card Sub-Containers in Light Mode */
+html.light .dark\:bg-slate-950\/50,
+html.light .dark\:bg-slate-950\/60,
+html.light .dark\:bg-slate-950\/70,
+html.light .dark\:bg-slate-950\/80 {
+  background-color: #f8fafc !important;
+}
+
+/* Surface Cards & Panels: Pure White with Crisp Border & Elevation */
+html.light .bg-slate-900:not(button):not([role="tab"]):not(aside *),
+html.light [class*="bg-slate-900/"]:not(button):not([role="tab"]):not(aside *) {
+  background-color: #ffffff !important;
+  box-shadow:
+    0 1px 3px 0 rgba(15, 23, 42, 0.04),
+    0 1px 2px -1px rgba(15, 23, 42, 0.02);
+}
+
+/* Header & Sidebar Shelving */
+html.light header,
+html.light [data-tauri-drag-region] {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+
+html.light aside {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* Secondary & Inset Containers */
+html.light .bg-slate-800:not(aside *),
+html.light [class*="bg-slate-800/"]:not(aside *) {
+  background-color: #f8fafc !important;
+}
+
+/* Sidebar Navigation Items in Light Mode */
+html.light aside nav a {
+  background-color: transparent !important;
+}
+
+html.light aside nav a.active,
+html.light aside nav a[class*="bg-emerald-500"] {
+  background-color: #ecfdf5 !important;
+  border-color: #a7f3d0 !important;
+}
+
+html.light aside nav a:hover:not(.active):not([class*="bg-emerald-500"]) {
+  background-color: #f1f5f9 !important;
+}
+
+/* Borders & Dividers */
+html.light .border-slate-800,
+html.light [class*="border-slate-800/"],
+html.light .border-slate-700,
+html.light [class*="border-slate-700/"] {
+  border-color: #e2e8f0 !important;
+}
+
+/* Typography Hierarchy */
+html.light .text-slate-100,
+html.light .text-slate-200 {
+  color: #0f172a !important;
+}
+
+/* SVG Chart Grid Lines and Ticks in Light Mode */
+html.light svg line[stroke="currentColor"],
+html.light line.text-slate-100,
+html.light line.text-slate-200,
+html.light line.text-slate-300 {
+  color: #e2e8f0 !important;
+  stroke: #e2e8f0 !important;
+}
+
+html.light svg text.fill-slate-400 {
+  fill: #64748b !important;
+}
+
+/* KaTeX Math Equations High Contrast in Both Modes */
+.katex {
+  color: inherit !important;
+}
+
+html.light .katex {
+  color: #0f172a !important;
+}
+
+html.dark .katex {
+  color: #f1f5f9 !important;
+}
+
+html.light .katex .frac-line {
+  border-bottom-color: #0f172a !important;
+}
+
+html.dark .katex .frac-line {
+  border-bottom-color: #f1f5f9 !important;
+}
+
+html.light .text-slate-300 {
+  color: #334155 !important;
+}
+
+html.light .text-slate-400 {
+  color: #64748b !important;
+}
+
+html.light .text-slate-500 {
+  color: #64748b !important;
+}
+
+html.light .text-slate-600 {
+  color: #94a3b8 !important;
+}
+
+/* High-Contrast Accent Colors for Light Mode (AAA Legibility) */
+html.light .text-emerald-400,
+html.light .text-emerald-300 {
+  color: #047857 !important;
+}
+
+html.light .text-cyan-400,
+html.light .text-cyan-300 {
+  color: #0e7490 !important;
+}
+
+html.light .text-amber-400,
+html.light .text-amber-300 {
+  color: #b45309 !important;
+}
+
+html.light .text-rose-400,
+html.light .text-rose-300 {
+  color: #be123c !important;
+}
+
+html.light .text-indigo-400,
+html.light .text-indigo-300 {
+  color: #4338ca !important;
+}
+
+html.light .text-purple-400 {
+  color: #7e22ce !important;
+}
+
+/* Accent Badges & Tinted Boxes */
+html.light [class*="bg-emerald-500/"],
+html.light [class*="bg-emerald-600/"] {
+  background-color: #ecfdf5 !important;
+  border-color: #a7f3d0 !important;
+}
+
+html.light [class*="bg-cyan-500/"],
+html.light [class*="bg-cyan-600/"] {
+  background-color: #ecfeff !important;
+  border-color: #a5f3fc !important;
+}
+
+html.light [class*="bg-amber-500/"] {
+  background-color: #fffbeb !important;
+  border-color: #fde68a !important;
+}
+
+html.light [class*="bg-rose-500/"] {
+  background-color: #fff1f2 !important;
+  border-color: #fecdd3 !important;
+}
+
+/* Hover States on Surfaces */
+html.light .hover\:bg-slate-900:hover,
+html.light .hover\:bg-slate-800:hover {
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
+}
+
+html.light .hover\:bg-slate-700:hover {
+  background-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+html.light .hover\:border-slate-700:hover {
+  border-color: #cbd5e1 !important;
+}
+
+/* Interactive Inputs, Selects & Textareas */
+html.light input:not([type="checkbox"]):not([type="range"]),
+html.light select,
+html.light textarea {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+html.light input::placeholder,
+html.light textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+html.light input:not([type="checkbox"]):not([type="range"]):focus,
+html.light select:focus,
+html.light textarea:focus {
+  border-color: #10b981 !important;
+  outline: 2px solid rgba(16, 185, 129, 0.15) !important;
+}
+
+/* Modern Native Dropdown / Select Styling */
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2394a3b8' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 0.75rem center;
+  background-repeat: no-repeat;
+  background-size: 1.25rem 1.25rem;
+  padding-right: 2.25rem !important;
+  cursor: pointer;
+}
+
+html.light select {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2364748b' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+}
+
+select option {
+  background-color: #0f172a;
+  color: #f8fafc;
+  padding: 8px 12px;
+}
+
+html.light select option {
+  background-color: #ffffff;
+  color: #0f172a;
+  padding: 8px 12px;
+}
+
+/* Range Sliders & Drag Steppers: completely remove ugly outline/ring on focus & drag */
+input[type="range"],
+input[type="range"]:focus,
+input[type="range"]:focus-visible,
+input[type="range"]:active {
+  outline: none !important;
+  box-shadow: none !important;
+  --tw-ring-shadow: 0 0 #0000 !important;
+  --tw-ring-offset-shadow: 0 0 #0000 !important;
+}
+
+input[type="range"]::-webkit-slider-thumb,
+input[type="range"]::-webkit-slider-thumb:focus,
+input[type="range"]::-webkit-slider-thumb:active {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+input[type="range"]::-moz-range-thumb,
+input[type="range"]::-moz-range-thumb:focus,
+input[type="range"]::-moz-range-thumb:active {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Progress Striped Animation */
+@keyframes progress-stripes {
+  0% {
+    background-position: 0 0;
+  }
+
+  100% {
+    background-position: 28px 0;
+  }
+}
+
+.animate-progress-stripes {
+  background-image: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.35) 25%,
+    transparent 25%,
+    transparent 50%,
+    rgba(255, 255, 255, 0.35) 50%,
+    rgba(255, 255, 255, 0.35) 75%,
+    transparent 75%,
+    transparent
+  );
+  background-size: 24px 24px;
+  animation: progress-stripes 0.7s linear infinite;
+}
+
+html.light .animate-progress-stripes {
+  background-image: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.5) 25%,
+    transparent 25%,
+    transparent 50%,
+    rgba(255, 255, 255, 0.5) 50%,
+    rgba(255, 255, 255, 0.5) 75%,
+    transparent 75%,
+    transparent
+  );
+}
+
+@keyframes pulse-glow {
+  0%,
+  100% {
+    opacity: 0.9;
+    filter: drop-shadow(0 0 6px rgba(6, 182, 212, 0.4));
+  }
+
+  50% {
+    opacity: 1;
+    filter: drop-shadow(0 0 12px rgba(6, 182, 212, 0.75));
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Checkboxes */
+html.light input[type="checkbox"] {
+  border-color: #cbd5e1 !important;
+  background-color: #ffffff !important;
+}
+
+/* Keyboard Shortcut Pills */
+html.light kbd {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  color: #334155 !important;
+  box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.05);
+}
+
+/* Scrollbars */
+html.light ::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+html.light ::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+html.light ::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.6);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(51, 65, 85, 0.8);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(71, 85, 105, 1);
+}
+
+/* Print / PDF Situation Report Styles (Spec 07 §4) */
+/* Dialog Backdrop Overlays - Transparent with Modern Backdrop Blur */
+[data-corvu-dialog-overlay] {
+  background-color: transparent !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+}
+
+@media print {
+  header,
+  button,
+  .no-print {
+    display: none !important;
+  }
+
+  body,
+  html,
+  #root,
+  main {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    overflow: visible !important;
+    height: auto !important;
+  }
+
+  section {
+    background: #f8fafc !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #0f172a !important;
+    break-inside: avoid;
+    box-shadow: none !important;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  p,
+  span,
+  div {
+    color: #0f172a !important;
+  }
+}
