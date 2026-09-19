@@ -11,6 +11,7 @@ A high-performance, reproducible desktop application with timeframe animation, 3
 [![Rust Core](https://img.shields.io/badge/core-Rust_1.85+-orange.svg)](crates/pfrsim-core)
 [![Desktop UI](https://img.shields.io/badge/desktop-SolidJS_1.9_%7C_Tauri_v2-emerald.svg)](apps/desktop)
 [![Version](https://img.shields.io/badge/version-v0.1.0-blue.svg)](apps/desktop/package.json)
+[![GitHub Release](https://img.shields.io/github/v/release/Akin01/pfrsim?color=blue&label=release)](https://github.com/Akin01/pfrsim/releases/latest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 <br /><br />
@@ -30,6 +31,25 @@ A high-performance, reproducible desktop application with timeframe animation, 3
 ---
 
 Direction: **Pure Rust in-process core — no Python or R sidecars.** All numerics run inside the Tauri v2 binary (`src-tauri` + `crates/pfrsim-core`); the frontend is built with SolidJS 1.9 + Vite 8 + Tailwind CSS v4 in the OS webview. Single binary (~17 MB), no external runtime to install, no localhost HTTP, no process supervision.
+
+---
+
+## Download Installers (Latest Release)
+
+Pre-built binaries and native desktop installers are available on the [**GitHub Releases (Latest: v0.1.0)**](https://github.com/Akin01/pfrsim/releases/latest):
+
+| Operating System | Installer / Package Type | Architecture | Download Link | File Size | SHA-256 Checksum |
+| :--- | :--- | :---: | :--- | :---: | :--- |
+| **Windows** | **NSIS Setup Wizard (`.exe`)** | `x64` | [`pfrsim_0.1.0_x64-setup.exe`](https://github.com/Akin01/pfrsim/releases/latest/download/pfrsim_0.1.0_x64-setup.exe) | $15.6\text{ MB}$ | `d63011d210d4005f7ed341cc64a10c9376667f4e6c0c7f0cae9ce3be02b0caa7` |
+| **Windows** | **WiX MSI Installer (`.msi`)** | `x64` | [`pfrsim_0.1.0_x64_en-US.msi`](https://github.com/Akin01/pfrsim/releases/latest/download/pfrsim_0.1.0_x64_en-US.msi) | $22.9\text{ MB}$ | `a9922d07e0bbe93e74396a88becb1dc93cbda4e0eccf6c8808966acef64696ff` |
+| **Windows** | **Portable Standalone (`.exe`)** | `x64` | [`pfrsim-desktop.exe`](https://github.com/Akin01/pfrsim/releases/latest/download/pfrsim-desktop.exe) | $83.7\text{ MB}$ | `29e6c002d880081248604793999ac3ce65dfbb01d2adba6dd2b709c20af0903b` |
+| **macOS** | **Apple Disk Image (`.dmg`)** | `Apple Silicon (aarch64)` | [`pfrsim_0.1.0_aarch64.dmg`](https://github.com/Akin01/pfrsim/releases/latest/download/pfrsim_0.1.0_aarch64.dmg) | $23.0\text{ MB}$ | `dae77dcdcc92d84e9d1713922efadf9ee116f5e1f51fe53f530e3fd137fa2bb3` |
+| **macOS** | **App Bundle Archive (`.tar.gz`)** | `Apple Silicon (aarch64)` | [`pfrsim_aarch64.app.tar.gz`](https://github.com/Akin01/pfrsim/releases/latest/download/pfrsim_aarch64.app.tar.gz) | $22.3\text{ MB}$ | `48974383ac92a0023df097c9745a60d8830787cec639309cbafbdf9393e6aec7` |
+| **Linux** | **Universal AppImage (`.AppImage`)** | `x86_64` | [`pfrsim_0.1.0_amd64.AppImage`](https://github.com/Akin01/pfrsim/releases/latest/download/pfrsim_0.1.0_amd64.AppImage) | $96.8\text{ MB}$ | `3d1da34aa235fd120938f914f24f9fd388982cdce15b98f68d63565c82601f99` |
+| **Linux** | **Debian / Ubuntu Package (`.deb`)** | `x86_64` | [`pfrsim_0.1.0_amd64.deb`](https://github.com/Akin01/pfrsim/releases/latest/download/pfrsim_0.1.0_amd64.deb) | $25.8\text{ MB}$ | `8413d81df6e4edcbd4cb0e4c0859f03fac99abc4da1a18d5302960d33db735b2` |
+| **Linux** | **Red Hat / Fedora / openSUSE (`.rpm`)** | `x86_64` | [`pfrsim-0.1.0-1.x86_64.rpm`](https://github.com/Akin01/pfrsim/releases/latest/download/pfrsim-0.1.0-1.x86_64.rpm) | $25.8\text{ MB}$ | `2287a1aa85fb8ac4cc46649868b60c883709c4940b12035f12b102d80c19ec07` |
+
+> **Integrity Verification**: Official SHA-256 checksum manifests are attached to each release: [`checksums-windows-latest.txt`](https://github.com/Akin01/pfrsim/releases/latest/download/checksums-windows-latest.txt), [`checksums-macos-latest.txt`](https://github.com/Akin01/pfrsim/releases/latest/download/checksums-macos-latest.txt), and [`checksums-ubuntu-22.04.txt`](https://github.com/Akin01/pfrsim/releases/latest/download/checksums-ubuntu-22.04.txt).
 
 ---
 
