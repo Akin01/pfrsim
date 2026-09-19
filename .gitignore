@@ -11,3 +11,4 @@ crash.log
 pfrsim_data/
 bun.lock
 bun.lockb
+fixtures/*10m*
