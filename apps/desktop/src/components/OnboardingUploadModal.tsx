@@ -29,6 +29,7 @@ export interface OnboardingUploadModalProps {
 
 export const OnboardingUploadModal: Component<OnboardingUploadModalProps> = (props) => {
   const t = () => catalogs[view.lang];
+  let isPicking = false;
 
   return (
     <Dialog open={props.open} onOpenChange={props.onOpenChange}>
@@ -74,15 +75,24 @@ export const OnboardingUploadModal: Component<OnboardingUploadModalProps> = (pro
                       }
                     }
                   }}
-                  onClick={async () => {
+                  onClick={async (e) => {
+                    if (isPicking) return;
+                    if (e.target === document.getElementById("onboarding-file-upload")) {
+                      return;
+                    }
                     if (isTauri() && props.onPathSelect) {
-                      const picked = await dialogPickFile(t().onboardingDropzonePrompt);
-                      if (picked.ok && picked.data) {
-                        const path = picked.data;
-                        const name = path.split(/[/\\]/).pop() || "dataset";
-                        props.onPathSelect(name, path);
-                        return;
+                      isPicking = true;
+                      try {
+                        const picked = await dialogPickFile(t().onboardingDropzonePrompt);
+                        if (picked.ok && picked.data) {
+                          const path = picked.data;
+                          const name = path.split(/[/\\]/).pop() || "dataset";
+                          props.onPathSelect(name, path);
+                        }
+                      } finally {
+                        isPicking = false;
                       }
+                      return;
                     }
                     const input = document.getElementById(
                       "onboarding-file-upload",
@@ -100,6 +110,7 @@ export const OnboardingUploadModal: Component<OnboardingUploadModalProps> = (pro
                     type="file"
                     accept=".csv,.tsv,.xlsx,.xls,.ods,.parquet,.pq,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                     class="hidden"
+                    onClick={(e) => e.stopPropagation()}
                     onChange={(e) => {
                       const files = e.currentTarget.files;
                       if (files && files.length > 0) {

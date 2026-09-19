@@ -22,6 +22,7 @@ export interface DatasetImportModalProps {
 }
 
 export const DatasetImportModal: Component<DatasetImportModalProps> = (props) => {
+  let isPicking = false;
   return (
     <Dialog open={props.open} onOpenChange={props.onOpenChange}>
       <Dialog.Portal>
@@ -70,17 +71,26 @@ export const DatasetImportModal: Component<DatasetImportModalProps> = (props) =>
                       props.onFileSelect(file);
                     }
                   }}
-                  onClick={async () => {
+                  onClick={async (e) => {
+                    if (isPicking) return;
+                    if (e.target === document.getElementById("data-page-file-input")) {
+                      return;
+                    }
                     if (isTauri() && props.onPathSelect) {
-                      const picked = await dialogPickFile(
-                        view.lang === "id" ? "Pilih Berkas Dataset" : "Select Dataset File",
-                      );
-                      if (picked.ok && picked.data) {
-                        const path = picked.data;
-                        const name = path.split(/[/\\]/).pop() || "dataset";
-                        props.onPathSelect(name, path);
-                        return;
+                      isPicking = true;
+                      try {
+                        const picked = await dialogPickFile(
+                          view.lang === "id" ? "Pilih Berkas Dataset" : "Select Dataset File",
+                        );
+                        if (picked.ok && picked.data) {
+                          const path = picked.data;
+                          const name = path.split(/[/\\]/).pop() || "dataset";
+                          props.onPathSelect(name, path);
+                        }
+                      } finally {
+                        isPicking = false;
                       }
+                      return;
                     }
                     const input = document.getElementById(
                       "data-page-file-input",
@@ -98,6 +108,7 @@ export const DatasetImportModal: Component<DatasetImportModalProps> = (props) =>
                     type="file"
                     accept=".csv,.tsv,.xlsx,.xls,.ods,.parquet,.pq,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                     class="hidden"
+                    onClick={(e) => e.stopPropagation()}
                     onChange={(e) => {
                       const files = e.currentTarget.files;
                       if (files && files.length > 0) {
