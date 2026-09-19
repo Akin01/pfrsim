@@ -2,7 +2,9 @@
   "name": "pfrsim-desktop",
   "version": "0.1.0",
   "private": true,
+  "description": "Desktop user interface for Peatland Fire Risk Simulator built with SolidJS 1.9, Tailwind CSS v4, and Tauri v2.",
   "license": "MIT",
+  "author": "Akin01 <Akinpasha82@gmail.com>",
   "type": "module",
   "scripts": {
     "dev": "vite",

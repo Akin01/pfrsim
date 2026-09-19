@@ -1,8 +1,32 @@
 {
   "name": "pfrsim",
   "version": "0.1.0",
+  "description": "High-performance Tropical Peatland Fire Risk Simulator desktop application with 3D peatland moisture rendering, deep learning forecasting (Burn LSTM & GRU), and in-process Rust numerics engine.",
+  "author": "Akin01 <Akinpasha82@gmail.com>",
+  "homepage": "https://github.com/akin01/pfrsim#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/akin01/pfrsim.git"
+  },
+  "bugs": {
+    "url": "https://github.com/akin01/pfrsim/issues"
+  },
   "license": "MIT",
   "private": true,
+  "keywords": [
+    "peatland",
+    "fire-risk",
+    "simulator",
+    "tauri",
+    "solidjs",
+    "rust",
+    "burn",
+    "deep-learning",
+    "time-series",
+    "pfvi",
+    "hydrology",
+    "desktop-app"
+  ],
   "scripts": {
     "dev": "tauri dev",
     "dev:frontend": "pnpm --filter pfrsim-desktop dev",
@@ -14,7 +38,10 @@
     "lint": "oxlint apps/desktop",
     "format": "oxfmt apps/desktop",
     "format:check": "oxfmt --check apps/desktop",
-    "typecheck": "pnpm --filter pfrsim-desktop typecheck"
+    "typecheck": "pnpm --filter pfrsim-desktop typecheck",
+    "bench:peatfr": "Rscript benchmark/bench_peatfr.R",
+    "bench:rust": "cargo run --release -p pfrsim-core --example bench_compare",
+    "bench:compare": "python benchmark/run_comparison.py"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2.11.4",

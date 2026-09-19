@@ -5,6 +5,19 @@ members = [
     "src-tauri",
 ]
 
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+authors = ["Akin01 <Akinpasha82@gmail.com>"]
+repository = "https://github.com/akin01/pfrsim"
+homepage = "https://github.com/akin01/pfrsim"
+documentation = "https://github.com/akin01/pfrsim#readme"
+readme = "README.md"
+description = "High-performance Tropical Peatland Fire Risk Simulator desktop application with 3D peatland moisture rendering, deep learning forecasting (Burn LSTM & GRU), and in-process Rust numerics engine."
+keywords = ["peatland", "fire-risk", "simulator", "tauri", "burn"]
+categories = ["science", "simulation", "gui", "algorithms"]
+
 [profile.dev]
 debug = 1
 
